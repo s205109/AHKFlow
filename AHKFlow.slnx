@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/TextFile1.txt" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/" />  
+  <Folder Name="/src/Backend/">
+    <Project Path="src/Backend/AHKFlow.API/AHKFlow.API.csproj" Id="686c4f51-3ba5-4ed7-90e5-205b9d49195d" />
+    <Project Path="src/Backend/AHKFlow.Application/AHKFlow.Application.csproj" Id="605627a6-f59c-49be-8452-6dfe7dacc5db" />
+    <Project Path="src/Backend/AHKFlow.Domain/AHKFlow.Domain.csproj" Id="15cc996b-83ab-4303-ad4b-5d1f7d7235ff" />
+    <Project Path="src/Backend/AHKFlow.Infrastructure/AHKFlow.Infrastructure.csproj" Id="a76019e0-af3f-4f75-a756-6e33234ee882" />
+  </Folder>
+  <Folder Name="/src/Frontend/">
+    <Project Path="src/Frontend/AHKFlow.UI.Blazor/AHKFlow.UI.Blazor.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AHKFlow.API.Tests/AHKFlow.API.Tests.csproj" Id="26e0ca92-c884-4846-affb-614b12465b88" />
+    <Project Path="tests/AHKFlow.Application.Tests/AHKFlow.Application.Tests.csproj" Id="b2a8598b-c8c9-40ec-9ab2-d64a8c125c9b" />
+    <Project Path="tests/AHKFlow.Domain.Tests/AHKFlow.Domain.Tests.csproj" Id="67bbc08d-792f-4909-b503-12cfa6921e6f" />
+    <Project Path="tests/AHKFlow.Infrastructure.Test/AHKFlow.Infrastructure.Test.csproj" Id="a056dab2-89ef-4151-9fdb-d4ae651c362b" />
+    <Project Path="tests/AHKFlow.UI.Blazor.Tests/AHKFlow.UI.Blazor.Tests.csproj" Id="a51c577a-bfda-4305-b14f-d57f360cc987" />
+  </Folder>
+</Solution>
