@@ -1,0 +1,40 @@
+name: Azure publish
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+      - name: Restore
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+      - name: Publish artifacts
+        run: dotnet publish src/Frontend/AHKFlow.UI.Blazor -c Release -o ./artifacts
+        
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AHKFLOW_AZURE_CREDENTIALS }}
+      - name: Deploy to Static Web App
+        run: |
+          echo "Deploy steps here"
+            

@@ -224,3 +224,4 @@ cleanup_ahkflow() {
 
 # Now run it
 cleanup_ahkflow
+```
