@@ -1,0 +1,17 @@
+{
+    // Copy this file to appsettings.Development.json and fill in your values
+    // appsettings.Development.json is gitignored
+    "AzureAd": {
+        "Instance": "https://login.microsoftonline.com/",
+        "ClientId": "YOUR_CLIENT_ID",
+        "TenantId": "YOUR_TENANT_ID",
+        "CallbackPath": "/signin-oidc",
+        "Scopes": "access_as_user"
+    },
+    "Logging": {
+        "LogLevel": {
+            "Default": "Debug",
+            "Microsoft.AspNetCore": "Information"
+        }
+    }
+}

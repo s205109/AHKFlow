@@ -1,0 +1,9 @@
+{
+    // Copy this file to appsettings.Development.json and fill in your values
+    // appsettings.Development.json is gitignored
+    "AzureAd": {
+        "ClientId": "YOUR_CLIENT_IDYOUR_CLIENT_ID",
+        "Authority": "https://login.microsoftonline.com/YOUR_TENANT_IDYOUR_TENANT_ID",
+        "ValidateAuthority": true
+    }
+}

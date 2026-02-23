@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/docs/">
-    <File Path="docs/TextFile1.txt" />
+    <File Path="docs/AZURE_CLI_SETUP.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
