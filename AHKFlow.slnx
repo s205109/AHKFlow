@@ -6,6 +6,65 @@
     <File Path=".editorconfig" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Solution Items/.github/">
+    <File Path=".github/.markdownlint.json" />
+    <File Path=".github/AHKFlow – Product Vision &amp; Architecture Overview.md" />
+    <File Path=".github/BACKLOG.md" />
+    <File Path=".github/copilot-instructions.md" />
+    <File Path=".github/IMPLEMENTATION_ROADMAP.md" />
+    <File Path=".github/Solution Structure.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/agents/">
+    <File Path=".github/agents/architect.agent.md" />
+    <File Path=".github/agents/engineer.agent.md" />
+    <File Path=".github/agents/product-manager.agent.md" />
+    <File Path=".github/agents/testing.agent.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/backlog/">
+    <File Path=".github/backlog/000-backlog-item-template.md" />
+    <File Path=".github/backlog/001-create-backlog-in-azure.md" />
+    <File Path=".github/backlog/002-github-flow-setup.md" />
+    <File Path=".github/backlog/003-scaffold-initial-solution.md" />
+    <File Path=".github/backlog/004-database-foundation-ef-core.md" />
+    <File Path=".github/backlog/005-api-health-checks-problem-details.md" />
+    <File Path=".github/backlog/006-testing-infrastructure-setup.md" />
+    <File Path=".github/backlog/007-docker-development-setup.md" />
+    <File Path=".github/backlog/008-add-versioning-minver.md" />
+    <File Path=".github/backlog/009-add-logging-serilog.md" />
+    <File Path=".github/backlog/010-create-ci-cd-pipeline.md" />
+    <File Path=".github/backlog/011-add-authentication-authorization.md" />
+    <File Path=".github/backlog/012-hotstrings-api-crud-openapi.md" />
+    <File Path=".github/backlog/013-hotstrings-ui-crud.md" />
+    <File Path=".github/backlog/014-hotstrings-validation-fluentvalidation.md" />
+    <File Path=".github/backlog/015-hotstrings-problem-details.md" />
+    <File Path=".github/backlog/016-hotstrings-cli-support.md" />
+    <File Path=".github/backlog/017-hotstrings-search-filtering.md" />
+    <File Path=".github/backlog/018-hotstrings-tests.md" />
+    <File Path=".github/backlog/019-hotkeys-api-crud.md" />
+    <File Path=".github/backlog/020-hotkeys-ui-crud.md" />
+    <File Path=".github/backlog/021-profile-management.md" />
+    <File Path=".github/backlog/022-header-templates-per-profile.md" />
+    <File Path=".github/backlog/023-generate-ahk-per-profile.md" />
+    <File Path=".github/backlog/024-download-generated-script-endpoint.md" />
+    <File Path=".github/backlog/025-cli-download-command.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/docs/">
+    <File Path=".github/docs/DTOs.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/instructions/">
+    <File Path=".github/instructions/aspnet-rest-apis.instructions.md" />
+    <File Path=".github/instructions/backend.instructions.md" />
+    <File Path=".github/instructions/blazor.instructions.md" />
+    <File Path=".github/instructions/frontend.instructions.md" />
+    <File Path=".github/instructions/private.instructions.md" />
+    <File Path=".github/instructions/testing.instructions.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/prompts/">
+    <File Path=".github/prompts/api-endpoint.prompt.md" />
+    <File Path=".github/prompts/fix-tests.prompt.md" />
+    <File Path=".github/prompts/new-entity.prompt.md" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/workflows/" />
   <Folder Name="/src/" />  
   <Folder Name="/src/Backend/">
     <Project Path="src/Backend/AHKFlow.API/AHKFlow.API.csproj" Id="686c4f51-3ba5-4ed7-90e5-205b9d49195d" />
