@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Logging
-- **Type**: Tech
+- **Type**: Feature
 - **Interfaces**: API
 
 ## Summary

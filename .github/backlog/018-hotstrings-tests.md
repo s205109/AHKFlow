@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Hotstrings
-- **Type**: Quality
+- **Type**: Feature
 - **Interfaces**: API
 
 ## Summary

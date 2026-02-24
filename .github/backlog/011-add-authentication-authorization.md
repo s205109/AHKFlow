@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Authentication and authorization
-- **Type**: Security
+- **Type**: Feature
 - **Interfaces**: UI | API | CLI
 
 ## Summary

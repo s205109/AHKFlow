@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Initial project / solution
-- **Type**: Tech
+- **Type**: Feature
 - **Interfaces**: (N/A)
 
 ## Summary

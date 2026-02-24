@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Versioning
-- **Type**: Tech
+- **Type**: Feature
 - **Interfaces**: (N/A)
 
 ## Summary

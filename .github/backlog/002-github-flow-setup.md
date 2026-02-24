@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Backlog setup
-- **Type**: Tech
+- **Type**: Feature
 - **Interfaces**: (N/A)
 
 ## Summary
