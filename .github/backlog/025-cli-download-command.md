@@ -1,4 +1,3 @@
-```markdown
 # 025 - CLI download command
 
 ## Metadata
@@ -30,5 +29,3 @@ As a power user, I want to download scripts via the CLI so that I can automate u
 ## Notes / dependencies
 
 - Depends on 024.
-
-```

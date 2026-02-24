@@ -1,4 +1,3 @@
-```markdown
 # 015 - Hotstrings errors via Problem Details (RFC 9457)
 
 ## Metadata
@@ -30,5 +29,3 @@ As a client developer, I want consistent error responses so that UI and CLI can 
 ## Notes / dependencies
 
 - Applies to 012 (and later hotkey/profile endpoints too).
-
-```

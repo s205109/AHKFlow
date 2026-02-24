@@ -1,4 +1,3 @@
-```markdown
 # 017 - Hotstrings search & filtering (grep, ignore-case)
 
 ## Metadata
@@ -31,5 +30,3 @@ As a user, I want to search and filter hotstrings so I can quickly find, edit, a
 ## Notes / dependencies
 
 - Depends on 012 (list-by-profile endpoint) and 016 (CLI support).
-
-```

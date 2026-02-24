@@ -1,4 +1,3 @@
-```markdown
 # 009 - Add structured logging (Serilog)
 
 ## Metadata
@@ -29,5 +28,3 @@ As a developer/operator, I want structured logs so that I can troubleshoot issue
 ## Notes / dependencies
 
 - Complements CI/CD and future observability.
-
-```

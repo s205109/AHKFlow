@@ -1,4 +1,3 @@
-```markdown
 # 012 - Hotstrings API CRUD + OpenAPI
 
 ## Metadata
@@ -30,5 +29,3 @@ As a client (UI/CLI), I want a hotstring CRUD API so that hotstrings can be mana
 ## Notes / dependencies
 
 - Depends on 003 and 011.
-
-```

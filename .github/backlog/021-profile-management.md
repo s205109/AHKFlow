@@ -1,4 +1,3 @@
-```markdown
 # 021 - Profile management (CRUD + select default)
 
 ## Metadata
@@ -31,5 +30,3 @@ As a user, I want to create and manage profiles so that I can group automation d
 ## Notes / dependencies
 
 - Required for all profile-scoped features.
-
-```

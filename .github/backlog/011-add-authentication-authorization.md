@@ -1,4 +1,3 @@
-```markdown
 # 011 - Add authentication and authorization
 
 ## Metadata
@@ -29,5 +28,3 @@ As a user, I want to sign in securely so that my profiles and automation definit
 ## Notes / dependencies
 
 - Impacts all feature endpoints.
-
-```

@@ -1,4 +1,3 @@
-```markdown
 # 023 - Generate .ahk script per profile
 
 ## Metadata
@@ -31,5 +30,3 @@ As a user, I want an `.ahk` script generated per profile so that I can download 
 ## Notes / dependencies
 
 - Depends on 012, 019, 022.
-
-```

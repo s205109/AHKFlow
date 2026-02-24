@@ -1,4 +1,3 @@
-```markdown
 # 003 - Scaffold initial solution structure
 
 ## Metadata
@@ -34,5 +33,3 @@ As a developer, I want a working solution skeleton so that feature development c
 ## Notes / dependencies
 
 - This item establishes naming, folder conventions, and DI boundaries early.
-
-```

@@ -1,4 +1,3 @@
-```markdown
 # 016 - Hotstrings CLI support (create/list + JSON)
 
 ## Metadata
@@ -31,5 +30,3 @@ As a power user, I want a CLI to manage hotstrings so that I can script and auto
 ## Notes / dependencies
 
 - Depends on 011, 012, 014.
-
-```

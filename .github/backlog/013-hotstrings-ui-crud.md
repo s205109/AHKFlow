@@ -1,4 +1,3 @@
-```markdown
 # 013 - Hotstrings UI CRUD
 
 ## Metadata
@@ -32,5 +31,3 @@ As a user, I want to manage hotstrings in the Web UI so that I can maintain my a
 
 - Depends on 012.
 - Assumes at least one profile exists (a seeded default is fine until 021 is implemented).
-
-```

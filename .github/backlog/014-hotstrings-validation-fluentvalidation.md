@@ -1,4 +1,3 @@
-```markdown
 # 014 - Hotstrings validation (FluentValidation)
 
 ## Metadata
@@ -30,5 +29,3 @@ As a developer, I want shared validation so that API and CLI behavior is consist
 ## Notes / dependencies
 
 - Used by 012 and 016.
-
-```

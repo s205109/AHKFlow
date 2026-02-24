@@ -1,4 +1,3 @@
-```markdown
 # 002 - Setup GitHub Flow and project branching
 
 ## Metadata
@@ -28,5 +27,3 @@ As a repository administrator, I want a GitHub Flow-based branching model and pr
 ## Notes / dependencies
 
 - References initial backlog import (001).
-
-```

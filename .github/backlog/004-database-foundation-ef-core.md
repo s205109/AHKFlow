@@ -1,4 +1,3 @@
-```markdown
 # 004 - Setup database foundation (EF Core + SQL Server provider)
 
 ## Metadata
@@ -29,5 +28,3 @@ As a developer, I want a reliable database foundation so integration tests and d
 ## Notes / dependencies
 
 - References scaffold (003) and testing infra (006).
-
-```
