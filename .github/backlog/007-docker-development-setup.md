@@ -1,4 +1,3 @@
-```markdown
 # 007 - Setup Docker for development (Dockerfile + Docker Compose)
 
 ## Metadata
@@ -28,5 +27,3 @@ As a developer, I want a reproducible development environment so onboarding and 
 ## Notes / dependencies
 
 - Integrates with testing and DB foundation (004, 006).
-
-```

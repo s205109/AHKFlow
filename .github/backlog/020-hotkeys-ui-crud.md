@@ -1,4 +1,3 @@
-```markdown
 # 020 - Hotkeys UI CRUD
 
 ## Metadata
@@ -30,5 +29,3 @@ As a user, I want to manage hotkeys in the Web UI so that I can define shortcuts
 ## Notes / dependencies
 
 - Depends on 019.
-
-```

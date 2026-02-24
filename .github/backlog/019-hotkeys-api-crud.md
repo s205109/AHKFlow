@@ -1,4 +1,3 @@
-```markdown
 # 019 - Hotkeys API CRUD
 
 ## Metadata
@@ -32,5 +31,3 @@ As a client (UI), I want a hotkey CRUD API so that hotkeys can be managed centra
 
 - Depends on 003.
 - Assumes profiles exist (a seeded default is fine until 021 is implemented).
-
-```

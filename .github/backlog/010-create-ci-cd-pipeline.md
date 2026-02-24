@@ -1,4 +1,3 @@
-```markdown
 # 010 - Create CI/CD pipeline for UI + API
 
 ## Metadata
@@ -29,5 +28,3 @@ As a developer, I want automated build/test/deploy so that changes reach a stagi
 ## Notes / dependencies
 
 - Requires the scaffold in 003.
-
-```

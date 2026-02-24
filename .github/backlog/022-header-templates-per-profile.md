@@ -1,4 +1,3 @@
-```markdown
 # 022 - Header templates per profile
 
 ## Metadata
@@ -31,5 +30,3 @@ As a user, I want a header template per profile so that generated scripts includ
 ## Notes / dependencies
 
 - Depends on 021.
-
-```

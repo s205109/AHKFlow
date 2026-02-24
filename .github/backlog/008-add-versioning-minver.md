@@ -1,4 +1,3 @@
-```markdown
 # 008 - Add versioning (MinVer)
 
 ## Metadata
@@ -28,5 +27,3 @@ As a developer, I want automated versioning so that builds produce consistent ve
 ## Notes / dependencies
 
 - Align with CI/CD in 010.
-
-```

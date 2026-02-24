@@ -1,4 +1,3 @@
-```markdown
 # 005 - Setup API health checks and Problem Details (RFC 9457)
 
 ## Metadata
@@ -28,5 +27,3 @@ As an operator, I want health endpoints and consistent error responses so that s
 ## Notes / dependencies
 
 - Complements DB foundation (004) and CI/CD (010).
-
-```

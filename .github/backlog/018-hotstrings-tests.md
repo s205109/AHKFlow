@@ -1,4 +1,3 @@
-```markdown
 # 018 - Hotstrings unit + integration tests
 
 ## Metadata
@@ -29,5 +28,3 @@ As a developer, I want tests for hotstrings so that changes can be made safely a
 ## Notes / dependencies
 
 - Depends on 003 and 012.
-
-```

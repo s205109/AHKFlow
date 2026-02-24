@@ -1,4 +1,3 @@
-```markdown
 # 024 - Download generated script endpoint
 
 ## Metadata
@@ -30,5 +29,3 @@ As a user, I want to download the generated script so that I can install/use it 
 ## Notes / dependencies
 
 - Depends on 023.
-
-```

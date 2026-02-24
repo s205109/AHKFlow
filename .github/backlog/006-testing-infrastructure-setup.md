@@ -1,4 +1,3 @@
-```markdown
 # 006 - Setup testing infrastructure (xUnit + FluentAssertions + NSubstitute)
 
 ## Metadata
@@ -28,5 +27,3 @@ As a developer, I want a test scaffold so that TDD and CI-based test execution a
 ## Notes / dependencies
 
 - Depends on scaffold (003) and DB foundation (004).
-
-```
