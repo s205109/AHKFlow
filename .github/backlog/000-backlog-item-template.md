@@ -3,7 +3,7 @@
 ## Metadata
 
 - **Epic**: <Epic name>
-- **Type**: Feature | Tech | Security | Quality
+- **Type**: Feature
 - **Interfaces**: UI | API | CLI
 
 ## Summary

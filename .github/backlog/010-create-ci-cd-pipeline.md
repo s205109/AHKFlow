@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: CI/CD
-- **Type**: Tech
+- **Type**: Feature
 - **Interfaces**: UI | API
 
 ## Summary

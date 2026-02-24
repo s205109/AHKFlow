@@ -4,7 +4,7 @@
 ## Metadata
 
 - **Epic**: Hotstrings
-- **Type**: Tech
+- **Type**: Feature
 - **Interfaces**: API | CLI
 
 ## Summary
