@@ -57,7 +57,7 @@ foreach ($file in $files) {
 
     if ($Execute) {
         Invoke-Expression $command
-        Write-Host "  ? Created" -ForegroundColor Green
+        Write-Host "  ✓ Created" -ForegroundColor Green
     }
     else {
         Write-Host "  [DRY RUN] $command" -ForegroundColor DarkGray
