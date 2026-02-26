@@ -21,16 +21,23 @@ Use these Azure defaults unless explicitly overridden:
 - **Entra App Registration Name**: `<YOUR_ENTRA_APP_REGISTRATION_NAME>`
 - **Application (Client) ID**: `<YOUR_APPLICATION_CLIENT_ID>`
 
+Template usage:
+
+- This `.example` file is a template only; do not put real values here.
+- Do not use this file directly for local development.
+- For local development, copy this file to `private.copilot.instructions.md` in the same folder.
+- Ensure `private.copilot.instructions.md` is listed in `.gitignore` and never committed.
+
 Naming note:
 
 - Use `ENTRA_APP_REGISTRATION_NAME` (clearer than `APP_REG_NAME`) for the Microsoft Entra app registration display name.
 
 First commit guidance:
 
-1. Commit this file with placeholders only.
-2. After first commit, add this file to `.gitignore` if you want local-only real values.
-3. Replace placeholders locally with your own values.
-4. Keep secrets out of this file; use GitHub Secrets/Key Vault/environment variables.
+1. Commit only this `.example` file with placeholders.
+2. Do not commit `private.copilot.instructions.md`; it is for local development only.
+3. After cloning, developers copy this file to `private.copilot.instructions.md` and replace placeholders locally.
+4. Keep secrets out of tracked files; use GitHub Secrets/Key Vault/environment variables.
 
 Constraints:
 
