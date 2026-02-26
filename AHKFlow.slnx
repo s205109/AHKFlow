@@ -59,6 +59,7 @@
     <File Path=".github/instructions/blazor.instructions.md" />
     <File Path=".github/instructions/frontend.instructions.md" />
     <File Path=".github/instructions/private.copilot.instructions.example.md" />
+    <File Path=".github/instructions/private.copilot.instructions.md" />
     <File Path=".github/instructions/testing.instructions.md" />
   </Folder>
   <Folder Name="/Solution Items/.github/prompts/">
