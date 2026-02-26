@@ -10,8 +10,6 @@ This document outlines the physical organization of the AHKFlow solution in Visu
 
 ``` plaintext
 Solution 'AHKFlow'
-├── 📁 build
-│   └── _build.csproj                             # NUKE build project
 ├── 📁 docs
 │   └── (documentation files)
 ├── 📁 Solution Items
