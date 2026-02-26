@@ -10,19 +10,19 @@ applyTo:
 # Frontend Instructions
 
 ## Project Location
-- **Frontend**: src/Frontend/AHKFlow.UI.Blazor/
-- **Tests**: tests/AHKFlow.UI.Blazor.Tests/
+- **Frontend**: `src/Frontend/AHKFlow.UI.Blazor/`
+- **Tests**: `tests/AHKFlow.UI.Blazor.Tests/`
 
 ## Component Structure
-- Pages in Pages/ folder organized by feature area (Hotstrings, Hotkeys, Profiles, Download)
-- Reusable components in Components/ folder
+- Pages in `Pages/` folder organized by feature area (Hotstrings, Hotkeys, Profiles, Download)
+- Reusable components in `Components/` folder
 - Use `@inject` for dependency injection
 - MudBlazor components for UI (e.g., MudTable, MudDialog, MudButton)
 
 ## HttpClient Pattern
 
 ### Registration
-- Register typed clients in Program.cs with `AddHttpClient<TInterface, TImplementation>()`
+- Register typed clients in `Program.cs` with `AddHttpClient<TInterface, TImplementation>()`
 
 ### API Client Pattern
 - Define interface with async methods
@@ -96,15 +96,15 @@ private CreateHotstringDtoValidator _validator = new();
 - Test return values, error handling, and correct API calls
 
 ## Authentication
-- Use `AddMsalAuthentication` in Program.cs with Azure AD configuration
-- Bind configuration from appsettings.json "AzureAd" section
+- Use `AddMsalAuthentication` in `Program.cs` with Azure AD configuration
+- Bind configuration from `appsettings.json` "AzureAd" section
 - Add default access token scopes for API access
 - Use `<AuthorizeView>` component to show/hide content based on authentication
 - Inject `AuthenticationStateProvider` for programmatic access to user state
 
 ## Progressive Web App (PWA)
-- Service worker configured in wwwroot/service-worker.js
-- Manifest in wwwroot/manifest.json
+- Service worker configured in `wwwroot/service-worker.js`
+- Manifest in `wwwroot/manifest.json`
 - Icons in `wwwroot/icon-*` files
 - Offline support via service worker caching
 

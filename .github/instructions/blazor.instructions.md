@@ -19,7 +19,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 
 ## HttpClient and API Integration
 
-- Register typed `HttpClient` instances via `AddHttpClient` in Program.cs to consume the AHKFlow Web API
+- Register typed `HttpClient` instances via `AddHttpClient` in `Program.cs` to consume the AHKFlow Web API
 - Set base address to API endpoint configuration
 
 ## Validation
@@ -35,6 +35,6 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 
 ## Progressive Web App (PWA)
 
-- Ensure service worker registration in index.html
+- Ensure service worker registration in `index.html`
 - Use PWA manifest for app metadata
 - Implement offline fallback pages and caching strategies as needed
