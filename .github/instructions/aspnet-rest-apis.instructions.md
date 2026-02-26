@@ -23,6 +23,7 @@ applyTo: '**/src/Backend/AHKFlow.API/**/*.cs'
 - Use `ProducesResponseType` attributes for OpenAPI documentation
 
 Example controller structure:
+
 ```csharp
 [ApiController]
 [Route("api/[controller]")]
@@ -63,12 +64,14 @@ public class HotstringsController : ControllerBase
 - Use `ValidationProblem()` for validation errors
 - Use `Problem()` for other error scenarios
 
-Enable ProblemDetails in `Program.cs`:
+Enable ProblemDetails in `Program.cs`
+
 ```csharp
 builder.Services.AddProblemDetails();
 ```
 
 Validation error example:
+
 ```csharp
 var validationResult = await _createValidator.ValidateAsync(createDto, cancellationToken);
 if (!validationResult.IsValid)
@@ -84,6 +87,7 @@ if (!validationResult.IsValid)
 ```
 
 Not found error example:
+
 ```csharp
 var entity = await _repository.GetByIdAsync(id, cancellationToken);
 if (entity == null)
@@ -103,25 +107,12 @@ if (entity == null)
 
 ## Database Configuration
 
-**Development**: SQL Server (LocalDB, Docker Compose, or Docker API only)  
+**Development**: LocalDB (recommended) or Docker Compose (SQL Server)
+
 **Production**: Azure SQL Database
 
-All SQL Server connections use `EnableRetryOnFailure()` with retry logic.  
-Migrations auto-apply in Development environment.
-
-## HttpClient for External APIs
-
-- Register typed HttpClient instances via `IHttpClientFactory` in `Program.cs`
-- Always chain `.AddStandardResilienceHandler()` for automatic retry, circuit breaker, timeout
-
-```csharp
-builder.Services.AddHttpClient<IExternalApiService, ExternalApiService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["ExternalApi:BaseUrl"]);
-    client.Timeout = TimeSpan.FromSeconds(30);
-})
-.AddStandardResilienceHandler();
-```
+- Use `EnableRetryOnFailure()` for SQL Server/Azure SQL providers
+- Migrations may auto-apply in Development environment (if enabled)
 
 ## Health Checks and Deployment
 

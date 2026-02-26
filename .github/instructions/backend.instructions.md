@@ -67,7 +67,7 @@ applyTo:
 ## Testing Approach
 
 ### Unit Tests (Application Layer)
-- Use xUnit + Fluent Assertions
+- Use xUnit + FluentAssertions
 - Mock dependencies with NSubstitute
 - Test service layer business logic
 - Test validators with valid and invalid scenarios
@@ -83,24 +83,21 @@ applyTo:
 - Use `WebApplicationFactory<Program>`
 - Test full HTTP request/response cycle
 - Verify API contract with DTOs
-- Use test database (in-memory SQLite or Testcontainers)
+- Use a real test database (Testcontainers for SQL Server recommended)
 
 ## Database Configuration
 
-**Development Profiles**:
-- LocalDB
-- Docker Compose  
-- Docker (API only - requires manual SQL start)
+**Development**: LocalDB (recommended) or Docker Compose (SQL Server)
 
-**Development Database**: SQL Server  
-**Production Database**: Azure SQL Database
+**Production**: Azure SQL Database
 
-All connections use `EnableRetryOnFailure()`. Migrations auto-apply in Development.
+- Use `EnableRetryOnFailure()` for SQL Server/Azure SQL providers
+- Migrations may auto-apply in Development (if enabled)
 
 ## DI Registration
 
 Register in `Program.cs`:
-- DbContext with SQL Server connection (with retry logic)
+- DbContext with SQL Server provider (LocalDB/Docker Compose)
 - Repositories (scoped)
 - Services (scoped)
 - FluentValidation validators
