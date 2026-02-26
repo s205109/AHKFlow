@@ -417,6 +417,11 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# Local development settings (contains Azure AD credentials)
+# AHKFlow - Local development settings (contain Azure AD credentials)
 **/appsettings.Development.json
 **/appsettings.Local.json
+
+# AHKFlow
+**/AppData/
+/.github/instructions/private.copilot.instructions.md
+
