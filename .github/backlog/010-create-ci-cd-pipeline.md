@@ -1,4 +1,4 @@
-# 010 - Create CI/CD pipeline for UI + API
+# 010 - Create CI/CD pipeline
 
 ## Metadata
 

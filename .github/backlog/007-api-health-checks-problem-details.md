@@ -1,4 +1,4 @@
-# 005 - Setup API health checks and Problem Details (RFC 9457)
+# 007 - Setup API health checks and Problem Details (RFC 9457)
 
 ## Metadata
 

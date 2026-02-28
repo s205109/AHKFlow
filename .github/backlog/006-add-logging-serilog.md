@@ -1,4 +1,4 @@
-# 009 - Add structured logging (Serilog)
+# 006 - Add structured logging (Serilog)
 
 ## Metadata
 

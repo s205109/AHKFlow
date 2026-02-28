@@ -28,11 +28,11 @@
     <File Path=".github/backlog/002-github-flow-setup.md" />
     <File Path=".github/backlog/003-scaffold-initial-solution.md" />
     <File Path=".github/backlog/004-database-foundation-ef-core.md" />
-    <File Path=".github/backlog/005-api-health-checks-problem-details.md" />
-    <File Path=".github/backlog/006-testing-infrastructure-setup.md" />
-    <File Path=".github/backlog/007-docker-development-setup.md" />
-    <File Path=".github/backlog/008-add-versioning-minver.md" />
-    <File Path=".github/backlog/009-add-logging-serilog.md" />
+    <File Path=".github/backlog/005-add-versioning-minver.md" />
+    <File Path=".github/backlog/006-add-logging-serilog.md" />
+    <File Path=".github/backlog/007-api-health-checks-problem-details.md" />
+    <File Path=".github/backlog/008-testing-infrastructure-setup.md" />
+    <File Path=".github/backlog/009-docker-development-setup.md" />
     <File Path=".github/backlog/010-create-ci-cd-pipeline.md" />
     <File Path=".github/backlog/011-add-authentication-authorization.md" />
     <File Path=".github/backlog/012-hotstrings-api-crud-openapi.md" />

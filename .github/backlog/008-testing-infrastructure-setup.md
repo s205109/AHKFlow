@@ -1,4 +1,4 @@
-# 006 - Setup testing infrastructure (xUnit + FluentAssertions + NSubstitute)
+# 008 - Setup testing infrastructure (xUnit + FluentAssertions + NSubstitute)
 
 ## Metadata
 
