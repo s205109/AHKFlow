@@ -38,7 +38,8 @@ builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(clie
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+})
+.AddStandardResilienceHandler();
 ```
 
 ### Configuration (appsettings.Development.json)

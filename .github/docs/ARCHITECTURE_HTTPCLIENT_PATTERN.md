@@ -68,8 +68,17 @@ builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(clie
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+})
+.AddStandardResilienceHandler();
 ```
+
+**Required Package:** `Microsoft.Extensions.Http.Resilience`
+
+Provides automatic:
+- Retry (exponential backoff)
+- Circuit breaker
+- Timeout handling
+- Rate limiting
 
 ### Configuration (appsettings.Development.json)
 
@@ -89,6 +98,7 @@ builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(clie
 - ✅ Configuration-driven base URL
 - ✅ Easy to extend (add methods)
 - ✅ Consistent naming across projects
+- ✅ Built-in resilience (retry, circuit breaker, timeout)
 
 ## Usage in Components
 
