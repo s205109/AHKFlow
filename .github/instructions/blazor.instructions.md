@@ -19,8 +19,52 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 
 ## HttpClient and API Integration
 
-- Register typed `HttpClient` instances via `AddHttpClient` in Program.cs to consume the AHKFlow Web API
-- Set base address to API endpoint configuration
+**Pattern:** Single typed HttpClient for all backend API operations.
+
+### Structure
+
+```
+Services/
+├── IProjectApiHttpClient.cs      # Interface for all API methods
+└── ProjectApiHttpClient.cs       # Implementation with HttpClient
+```
+
+### Registration (Program.cs)
+
+```csharp
+var apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:5000";
+
+builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+```
+
+### Configuration (appsettings.Development.json)
+
+```json
+{
+  "ApiHttpClient": {
+    "BaseAddress": "https://localhost:5000"
+  }
+}
+```
+
+### Usage in Components
+
+```razor
+@inject IProjectApiHttpClient ApiClient
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var data = await ApiClient.GetDataAsync(_cts.Token);
+    }
+}
+```
+
+**Details:** See [frontend.instructions.md](frontend.instructions.md#httpclient-pattern)
 
 ## Validation
 

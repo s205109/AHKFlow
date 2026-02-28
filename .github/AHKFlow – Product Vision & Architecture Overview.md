@@ -137,6 +137,13 @@ Responsibilities:
 - Orchestrate API calls and present results
 - Download generated `.ahk` files
 
+API Integration:
+
+- **Typed HttpClient pattern** via single `IApiClient` interface
+- Configuration-driven base address
+- Registered via `AddHttpClient<IInterface, Implementation>()` in Program.cs
+- See: `.github/docs/ARCHITECTURE_HTTPCLIENT_PATTERN.md`
+
 ### 6.2 Backend – Web API
 
 Characteristics:
