@@ -1,9 +1,79 @@
 ﻿@page "/"
+@using AHKFlow.UI.Blazor.Services
 
 <PageTitle>Home</PageTitle>
+
+@implements System.IDisposable
 
 <MudText Typo="Typo.h4" GutterBottom="true">Welcome to AHKFlow</MudText>
 
 <MudPaper Class="pa-6">
     <MudText Typo="Typo.body1">Manage your AutoHotkey setup from a modern Blazor WebAssembly UI powered by MudBlazor.</MudText>
+
+    @if (_isLoading)
+    {
+        <MudText Typo="Typo.caption" Class="mt-4">
+            <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+            <span class="ml-2">Loading version...</span>
+        </MudText>
+    }
+    else if (!string.IsNullOrEmpty(_version))
+    {
+        <MudText Typo="Typo.caption" Class="mt-4">
+            <strong>Version:</strong> @_version
+        </MudText>
+    }
+    else if (_hasError)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mt-4">
+            <strong>Unable to retrieve version</strong> - The API may not be running. Make sure the backend is started.
+        </MudAlert>
+    }
 </MudPaper>
+
+@inject IAhkFlowApiClient ApiClient
+
+@code {
+    private string _version = string.Empty;
+    private bool _isLoading = true;
+    private bool _hasError = false;
+    private System.Threading.CancellationTokenSource _cts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _version = await ApiClient.GetVersionAsync(_cts.Token) ?? string.Empty;
+
+            if (string.IsNullOrEmpty(_version))
+            {
+                _hasError = true;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore cancellation
+        }
+        catch (Exception)
+        {
+            _hasError = true;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+}
