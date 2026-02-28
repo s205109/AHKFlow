@@ -1,4 +1,4 @@
-# 007 - Setup Docker for development (Dockerfile + Docker Compose)
+# 009 - Setup Docker for development (Dockerfile + Docker Compose)
 
 ## Metadata
 

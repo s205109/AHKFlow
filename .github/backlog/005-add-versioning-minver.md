@@ -1,4 +1,4 @@
-# 008 - Add versioning (MinVer)
+# 005 - Add versioning (MinVer)
 
 ## Metadata
 
