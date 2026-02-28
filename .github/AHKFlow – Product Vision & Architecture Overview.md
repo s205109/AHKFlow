@@ -141,7 +141,8 @@ API Integration:
 
 - **Typed HttpClient pattern** via single `IApiClient` interface
 - Configuration-driven base address
-- Registered via `AddHttpClient<IInterface, Implementation>()` in Program.cs
+- Registered via `AddHttpClient<IInterface, Implementation>().AddStandardResilienceHandler()` in Program.cs
+- Built-in resilience (retry, circuit breaker, timeout)
 - See: `.github/docs/ARCHITECTURE_HTTPCLIENT_PATTERN.md`
 
 ### 6.2 Backend – Web API

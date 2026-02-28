@@ -69,7 +69,8 @@ builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(clie
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+})
+.AddStandardResilienceHandler();
 ```
 
 **4. Configuration** (`appsettings.Development.json`):
@@ -175,7 +176,7 @@ private CreateHotstringDtoValidator _validator = new();
 
 ## DI Registration (Program.cs)
 - Add MudBlazor: `builder.Services.AddMudServices()`
-- Register typed HttpClient: `builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(client => ...)`
+- Register typed HttpClient with resilience: `builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(...).AddStandardResilienceHandler()`
 - Add MSAL authentication: `builder.Services.AddMsalAuthentication(...)` with Azure AD config
 
 ````

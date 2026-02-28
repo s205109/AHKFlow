@@ -11,12 +11,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // Get API base URL from configuration
 var apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
 
-// Register typed HttpClient for API calls
+// Register typed HttpClient for API calls with resilience
 builder.Services.AddHttpClient<IAhkFlowApiHttpClient, AhkFlowApiHttpClient>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
-});
+})
+.AddStandardResilienceHandler();
 
 builder.Services.AddMudServices();
 
