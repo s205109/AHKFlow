@@ -51,7 +51,8 @@
     <File Path=".github/backlog/025-cli-download-command.md" />
   </Folder>
   <Folder Name="/Solution Items/.github/docs/">
-    <File Path=".github/docs/DTOs.md" />
+    <File Path=".github/docs/ARCHITECTURE_DTOS.md" />
+    <File Path=".github/docs/ARCHITECTURE_HTTPCLIENT_PATTERN.md" />
   </Folder>
   <Folder Name="/Solution Items/.github/instructions/">
     <File Path=".github/instructions/aspnet-rest-apis.instructions.md" />
