@@ -3,11 +3,11 @@ using System.Net.Http.Json;
 
 namespace AHKFlow.UI.Blazor.Services;
 
-public class AhkFlowApiClient : IAhkFlowApiClient
+public class AhkFlowApiHttpClient : IAhkFlowApiHttpClient
 {
     private readonly HttpClient _httpClient;
 
-    public AhkFlowApiClient(HttpClient httpClient)
+    public AhkFlowApiHttpClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

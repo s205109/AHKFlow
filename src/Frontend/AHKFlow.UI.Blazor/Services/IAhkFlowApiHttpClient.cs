@@ -1,6 +1,6 @@
 namespace AHKFlow.UI.Blazor.Services;
 
-public interface IAhkFlowApiClient
+public interface IAhkFlowApiHttpClient
 {
     Task<string?> GetVersionAsync(CancellationToken cancellationToken);
 }

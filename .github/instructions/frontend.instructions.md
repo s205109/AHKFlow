@@ -21,15 +21,80 @@ applyTo:
 
 ## HttpClient Pattern
 
-### Registration
-- Register typed clients in Program.cs with `AddHttpClient<TInterface, TImplementation>()`
+**Single typed HttpClient for all backend API operations.**
 
-### API Client Pattern
-- Define interface with async methods
-- Implement with `HttpClient` injected via constructor
-- Use `GetFromJsonAsync`, `PostAsJsonAsync`, `PutAsJsonAsync`, `DeleteAsync`
-- Call `EnsureSuccessStatusCode()` after mutations
-- Return empty collections instead of null for lists
+### Implementation
+
+**1. Interface** (`Services/IProjectApiHttpClient.cs`):
+
+```csharp
+public interface IProjectApiHttpClient
+{
+    Task<DataDto?> GetDataAsync(CancellationToken cancellationToken);
+    // Add methods as features develop
+}
+```
+
+**2. Implementation** (`Services/ProjectApiHttpClient.cs`):
+
+```csharp
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+
+public class ProjectApiHttpClient : IProjectApiHttpClient
+{
+    private readonly HttpClient _httpClient;
+
+    public ProjectApiHttpClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+        _httpClient.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+        _httpClient.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue { NoCache = true };
+    }
+
+    public async Task<DataDto?> GetDataAsync(CancellationToken cancellationToken)
+    {
+        return await _httpClient.GetFromJsonAsync<DataDto>("api/v1/data", cancellationToken);
+    }
+}
+```
+
+**3. Registration** (`Program.cs`):
+
+```csharp
+var apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:5000";
+
+builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+```
+
+**4. Configuration** (`appsettings.Development.json`):
+
+```json
+{
+  "ApiHttpClient": {
+    "BaseAddress": "https://localhost:5000"
+  }
+}
+```
+
+### Adding Endpoints
+
+Add method to interface → implement → use in components. No registration changes needed.
+
+### Principles
+
+- One interface for all API operations
+- Naming: `I{ProjectName}ApiHttpClient`, `{ProjectName}ApiHttpClient`
+- Config key: `"ApiHttpClient"` (consistent across projects)
+- Headers: Accept JSON, no-cache
+- CancellationToken on all methods
+- Return `[]` not null for collections
+- Exceptions bubble to components
 
 ## Component Patterns
 
@@ -110,9 +175,7 @@ private CreateHotstringDtoValidator _validator = new();
 
 ## DI Registration (Program.cs)
 - Add MudBlazor: `builder.Services.AddMudServices()`
-- Register typed HttpClients: `builder.Services.AddHttpClient<IClient, Client>(client => client.BaseAddress = ...)`
-- Set base address to `builder.HostEnvironment.BaseAddress` for API calls
+- Register typed HttpClient: `builder.Services.AddHttpClient<IProjectApiHttpClient, ProjectApiHttpClient>(client => ...)`
 - Add MSAL authentication: `builder.Services.AddMsalAuthentication(...)` with Azure AD config
-- Register one HttpClient per API area: Hotstrings, Hotkeys, Profiles, Scripts
 
 ````
