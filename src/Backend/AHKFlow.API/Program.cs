@@ -1,33 +1,41 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Identity.Web;
+using AHKFlow.Infrastructure.Services;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+// Add CORS for Blazor WASM (allow localhost during development)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorWasm", policy =>
+    {
+        policy.WithOrigins("https://localhost:7601", "http://localhost:5601")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
+// Register services
+builder.Services.AddSingleton<IVersionService, VersionService>();
+
+// Add controllers and API documentation
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-WebApplication app = builder.Build();
+var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure middleware pipeline
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication();
-
-app.UseAuthorization();
-
+app.UseCors("AllowBlazorWasm");
 app.MapControllers();
 
 app.Run();

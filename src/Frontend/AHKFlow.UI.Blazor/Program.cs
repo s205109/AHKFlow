@@ -1,4 +1,5 @@
 using AHKFlow.UI.Blazor;
+using AHKFlow.UI.Blazor.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -7,7 +8,16 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+// Get API base URL from configuration
+var apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
+
+// Register typed HttpClient for API calls
+builder.Services.AddHttpClient<IAhkFlowApiClient, AhkFlowApiClient>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 builder.Services.AddMudServices();
 
 builder.Services.AddMsalAuthentication(options =>
