@@ -22,7 +22,7 @@ applyTo:
 - DTOs: `HotstringDto`, `CreateHotstringDto`, `UpdateHotstringDto`
 - Commands: `CreateHotstringCommand`, `UpdateHotstringCommand`
 - Queries: `GetHotstringByIdQuery`, `GetHotstringsByProfileQuery`
-- Controllers: `HotstringsController`, `ProfilesController` (plural)
+- Controllers: `HotstringsController`, `ProfilesController`, 'VersionController'
 - Domain entities: `Hotstring`, `Hotkey`, `Profile`, `HeaderTemplate`
 
 ## Key Patterns
