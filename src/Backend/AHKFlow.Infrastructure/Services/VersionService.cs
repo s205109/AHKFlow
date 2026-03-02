@@ -6,7 +6,7 @@ namespace AHKFlow.Infrastructure.Services
     {
         public Task<string> GetVersionAsync(CancellationToken cancellationToken = default)
         {
-            var version = Assembly.GetEntryAssembly()?
+            string version = Assembly.GetEntryAssembly()?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion ?? "0.0.0-dev";
             
