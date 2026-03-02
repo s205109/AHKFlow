@@ -8,6 +8,12 @@
         "CallbackPath": "/signin-oidc",
         "Scopes": "access_as_user"
     },
+    "Cors": {
+        "AllowedOrigins": [
+            "https://localhost:7601",
+            "http://localhost:5601"
+        ]
+    },
     "Logging": {
         "LogLevel": {
             "Default": "Debug",
