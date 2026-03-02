@@ -3,19 +3,25 @@
 
 using AHKFlow.Infrastructure.Services;
 
+const string corsPolicyName = "AllowConfiguredOrigins";
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS for Blazor WASM (allow localhost during development)
-builder.Services.AddCors(options =>
+// Add CORS - allowed origins are configured in appsettings (Cors:AllowedOrigins)
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+if (allowedOrigins.Length > 0)
 {
-    options.AddPolicy("AllowBlazorWasm", policy =>
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins("https://localhost:7601", "http://localhost:5601")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        options.AddPolicy(corsPolicyName, policy =>
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
     });
-});
+}
 
 // Register services
 builder.Services.AddSingleton<IVersionService, VersionService>();
@@ -35,7 +41,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowBlazorWasm");
+
+if (allowedOrigins.Length > 0)
+{
+    app.UseCors(corsPolicyName);
+}
+
 app.MapControllers();
 
 app.Run();
