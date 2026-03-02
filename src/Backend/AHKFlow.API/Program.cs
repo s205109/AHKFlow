@@ -2,50 +2,91 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using AHKFlow.Infrastructure.Services;
+using Serilog;
+using Serilog.Events;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+// Two-stage initialization: https://github.com/serilog/serilog-aspnetcore#two-stage-initialization
+// Bootstrap logger captures startup errors before configuration is loaded
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// Add CORS - allowed origins are configured in appsettings (Cors:AllowedOrigins)
-const string corsPolicyName = "AllowConfiguredOrigins";
-string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-if (allowedOrigins.Length > 0)
+try
 {
-    builder.Services.AddCors(options =>
+    Log.Information("Starting AHKFlow API...");
+
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+    // Configure Serilog from appsettings with two-stage initialization
+    builder.Services.AddSerilog((services, configuration) => configuration
+        .ReadFrom.Configuration(builder.Configuration)
+        .ReadFrom.Services(services));
+
+    // Add CORS - allowed origins are configured in appsettings (Cors:AllowedOrigins)
+    const string corsPolicyName = "AllowConfiguredOrigins";
+    string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+    if (allowedOrigins.Length > 0)
     {
-        options.AddPolicy(corsPolicyName, policy =>
+        builder.Services.AddCors(options =>
         {
-            policy.WithOrigins(allowedOrigins)
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
+            options.AddPolicy(corsPolicyName, policy =>
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
         });
+    }
+
+    // Register services
+    builder.Services.AddSingleton<IVersionService, VersionService>();
+
+    // Add controllers and API documentation
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    WebApplication app = builder.Build();
+
+    // Add Serilog HTTP request logging with useful context (status code, path, duration)
+    // Excludes sensitive data by default - only logs request path, method, status code, and elapsed time
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
+        };
     });
+
+    // Configure middleware pipeline
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseHttpsRedirection();
+
+    if (allowedOrigins.Length > 0)
+    {
+        app.UseCors(corsPolicyName);
+    }
+
+    app.MapControllers();
+
+    Log.Information("AHKFlow API started successfully");
+    app.Run();
 }
-
-// Register services
-builder.Services.AddSingleton<IVersionService, VersionService>();
-
-// Add controllers and API documentation
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-WebApplication app = builder.Build();
-
-// Configure middleware pipeline
-if (app.Environment.IsDevelopment())
+catch (Exception ex) when (ex is not HostAbortedException)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Fatal(ex, "AHKFlow API terminated unexpectedly");
 }
-
-app.UseHttpsRedirection();
-
-if (allowedOrigins.Length > 0)
+finally
 {
-    app.UseCors(corsPolicyName);
+    Log.Information("AHKFlow API shutting down...");
+    Log.CloseAndFlush();
 }
-
-app.MapControllers();
-
-app.Run();
