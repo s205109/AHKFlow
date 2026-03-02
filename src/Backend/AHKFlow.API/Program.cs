@@ -3,13 +3,11 @@
 
 using AHKFlow.Infrastructure.Services;
 
-
-
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add CORS - allowed origins are configured in appsettings (Cors:AllowedOrigins)
 const string corsPolicyName = "AllowConfiguredOrigins";
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 if (allowedOrigins.Length > 0)
 {
     builder.Services.AddCors(options =>
@@ -32,7 +30,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure middleware pipeline
 if (app.Environment.IsDevelopment())

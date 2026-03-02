@@ -70,6 +70,7 @@ Solution 'AHKFlow'
 Follow these rules for all code generation:
 
 - Use Allman brace style (opening braces on new lines) - enforced by `.editorconfig`
+- Use `var` when the type is apparent from the right side of the assignment (e.g., `var service = new VersionService();`)
 - Always use `async`/`await` for asynchronous operations with `CancellationToken` support
 - Prefer null-coalescing operators (`??`) over verbose null checks
 - Add inline comments only for non-obvious logic

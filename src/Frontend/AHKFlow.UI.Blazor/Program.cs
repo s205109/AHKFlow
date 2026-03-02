@@ -9,7 +9,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // Get API base URL from configuration
-var apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
+string apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
 
 // Register typed HttpClient for API calls with resilience
 builder.Services.AddHttpClient<IAhkFlowApiHttpClient, AhkFlowApiHttpClient>(client =>

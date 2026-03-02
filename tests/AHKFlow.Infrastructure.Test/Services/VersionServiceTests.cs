@@ -1,7 +1,7 @@
 using AHKFlow.Infrastructure.Services;
 using FluentAssertions;
 
-namespace AHKFlow.Infrastructure.Tests.Services
+namespace AHKFlow.Infrastructure.Test.Services
 {
     public class VersionServiceTests
     {
