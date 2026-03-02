@@ -19,7 +19,7 @@ public class AhkFlowApiHttpClient : IAhkFlowApiHttpClient
 
     public async Task<string?> GetVersionAsync(CancellationToken cancellationToken)
     {
-        VersionResponse? response = await _httpClient.GetFromJsonAsync<VersionResponse>("api/v1/version", cancellationToken);
+        VersionResponse? response = await _httpClient.GetFromJsonAsync<VersionResponse>("api/v1/versions", cancellationToken);
         return response?.Version;
     }
 

@@ -5,13 +5,13 @@ namespace AHKFlow.API.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class VersionController : ControllerBase
+    public class VersionsController : ControllerBase
     {
-        private readonly ILogger<VersionController> _logger;
+        private readonly ILogger<VersionsController> _logger;
         private readonly IVersionService _versionService;
         private const string ErrorMessage = "An unexpected error occurred while retrieving the application version.";
 
-        public VersionController(ILogger<VersionController> logger, IVersionService versionService)
+        public VersionsController(ILogger<VersionsController> logger, IVersionService versionService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _versionService = versionService ?? throw new ArgumentNullException(nameof(versionService));
