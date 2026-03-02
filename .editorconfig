@@ -39,6 +39,11 @@ csharp_indent_case_contents_when_block = false
 csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
+# AHKFlow preferences
+[*.cs]
+csharp_style_prefer_primary_constructors = false
+dotnet_diagnostic.IDE0290.severity = none
+
 # Modifier preferences
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:suggestion
 
