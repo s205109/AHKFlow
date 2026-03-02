@@ -18,6 +18,16 @@ For more details, see:
 - [AHKFlow – Product Vision & Architecture Overview.md](AHKFlow – Product Vision & Architecture Overview.md)
 - [Solution Structure.md](Solution Structure.md)
 
+## Role/Agent Selection
+
+- In this project there are agent/role definitions under `.github/` (for example in `.github/agents`).
+- **Before answering any question**, first check the available agents/roles in `.github/agents` (and any other agent definitions under `.github/`).
+- If an agent/role is applicable, **assume that role** for the response (use its responsibilities, tone, and constraints).
+- **Start every answer with a short line stating the assumed role**, e.g.:
+  - `Assumed role: <RoleName> (from .github/agents/<file>)`
+- If no agent/role applies or none are available, start with:
+  - `Assumed role: None (no applicable agent found)`
+
 ### Validation Steps Before PR
 
 1. Ensure all tests pass: `dotnet test`
