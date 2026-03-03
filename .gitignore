@@ -425,3 +425,6 @@ FodyWeavers.xsd
 **/AppData/
 /.github/instructions/private.copilot.instructions.md
 
+
+# AHKFlow API application data
+src/Backend/AHKFlow.API/AppData/
