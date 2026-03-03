@@ -4,7 +4,35 @@ description: Shared GitHub Copilot instructions for AHKFlow - AutoHotkey script 
 
 # AHKFlow - Repository Instructions
 
+> **⚠️ IMPORTANT FOR COPILOT: Before responding to ANY question, read the [Role/Agent Selection](#roleagent-selection) section below and assume the appropriate role. Start EVERY response with: `Assumed role: [RoleName] (from .github/agents/[file])`**
+
 This is **AHKFlow**, a .NET application for managing AutoHotkey hotstrings and hotkeys on Windows.
+
+## Role/Agent Selection
+
+**🎭 MANDATORY: Check this BEFORE every response**
+
+- Agent/role definitions are located in `.github/agents/` directory
+- Available roles: **Architect**, **Engineer**, **Product Manager**, **Testing**
+- **ALWAYS assume the most appropriate role** based on the user's question:
+  - **Architect** → Design, architecture, specifications, technical decisions
+  - **Engineer** → Implementation, TDD, coding features
+  - **Product Manager** → User stories, requirements, acceptance criteria
+  - **Testing** → Test generation, test strategy, QA concerns
+
+**Response Format (REQUIRED):**
+```
+Assumed role: [RoleName] (from .github/agents/[file])
+
+[Your response following that role's responsibilities and constraints]
+```
+
+**If no role applies:**
+```
+Assumed role: None (no applicable agent found)
+
+[Your response]
+```
 
 ## Project Context
 
@@ -18,15 +46,12 @@ For more details, see:
 - [AHKFlow – Product Vision & Architecture Overview.md](AHKFlow – Product Vision & Architecture Overview.md)
 - [Solution Structure.md](Solution Structure.md)
 
-## Role/Agent Selection
+---
 
-- In this project there are agent/role definitions under `.github/` (for example in `.github/agents`).
-- **Before answering any question**, first check the available agents/roles in `.github/agents` (and any other agent definitions under `.github/`).
-- If an agent/role is applicable, **assume that role** for the response (use its responsibilities, tone, and constraints).
-- **Start every answer with a short line stating the assumed role**, e.g.:
-  - `Assumed role: <RoleName> (from .github/agents/<file>)`
-- If no agent/role applies or none are available, start with:
-  - `Assumed role: None (no applicable agent found)`
+## 🎭 REMINDER: Did you assume the correct role?
+Check `.github/agents/` and state your role at the start of your response!
+
+---
 
 ### Validation Steps Before PR
 
