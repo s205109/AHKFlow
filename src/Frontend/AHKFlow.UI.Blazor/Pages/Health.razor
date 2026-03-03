@@ -1,0 +1,149 @@
+@page "/health"
+@using AHKFlow.UI.Blazor.Services
+
+<PageTitle>Health Check</PageTitle>
+
+@implements System.IDisposable
+
+<MudText Typo="Typo.h4" GutterBottom="true">System Health</MudText>
+
+<MudPaper Class="pa-6">
+    @if (_isLoading)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <MudText Typo="Typo.body2" Class="mt-2">Checking system health...</MudText>
+    }
+    else if (_healthCheck != null)
+    {
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Status</MudText>
+                    <MudText Typo="Typo.h5" Color="@(_healthCheck.Status == "Healthy" ? Color.Success : Color.Error)">
+                        @_healthCheck.Status
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Version</MudText>
+                    <MudText Typo="Typo.h6">@_healthCheck.Version</MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Environment</MudText>
+                    <MudText Typo="Typo.h6">@_healthCheck.Environment</MudText>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Timestamp</MudText>
+                    <MudText Typo="Typo.body2">@_healthCheck.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") UTC</MudText>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        @if (_healthCheck.Checks.Any())
+        {
+            <MudText Typo="Typo.h6" Class="mt-6 mb-2">Component Checks</MudText>
+            <MudSimpleTable Striped="true" Dense="true">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var check in _healthCheck.Checks)
+                    {
+                        <tr>
+                            <td>@check.Key</td>
+                            <td>
+                                <MudText Typo="Typo.body2" Color="@(check.Value == "Healthy" ? Color.Success : Color.Error)">
+                                    @check.Value
+                                </MudText>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4" OnClick="RefreshHealthAsync">
+            Refresh
+        </MudButton>
+    }
+    else if (_hasError)
+    {
+        <MudAlert Severity="Severity.Error">
+            <strong>Unable to retrieve health status</strong> - The API may not be running. Make sure the backend is started.
+        </MudAlert>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4" OnClick="RefreshHealthAsync">
+            Retry
+        </MudButton>
+    }
+</MudPaper>
+
+@inject IAhkFlowApiHttpClient ApiClient
+
+@code {
+    private HealthCheckResponse? _healthCheck;
+    private bool _isLoading = true;
+    private bool _hasError = false;
+    private System.Threading.CancellationTokenSource _cts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHealthAsync();
+    }
+
+    private async Task LoadHealthAsync()
+    {
+        _isLoading = true;
+        _hasError = false;
+
+        try
+        {
+            _healthCheck = await ApiClient.GetHealthAsync(_cts.Token);
+
+            if (_healthCheck == null)
+            {
+                _hasError = true;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore cancellation
+        }
+        catch (Exception)
+        {
+            _hasError = true;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task RefreshHealthAsync()
+    {
+        await LoadHealthAsync();
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _cts.Cancel();
+            _cts.Dispose();
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+}

@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 using AHKFlow.Infrastructure.Services;
 using Serilog;
 using Serilog.Events;
@@ -63,10 +60,18 @@ try
     });
 
     // Configure middleware pipeline
+    // Add Problem Details middleware for consistent error handling
+    app.UseStatusCodePages();
+
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
+    }
+    else
+    {
+        // Use exception handler in production
+        app.UseExceptionHandler();
     }
 
     app.UseHttpsRedirection();

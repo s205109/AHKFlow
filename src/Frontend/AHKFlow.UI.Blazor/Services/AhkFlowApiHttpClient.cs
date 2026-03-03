@@ -23,6 +23,11 @@ public class AhkFlowApiHttpClient : IAhkFlowApiHttpClient
         return response?.Version;
     }
 
+    public Task<HealthCheckResponse?> GetHealthAsync(CancellationToken cancellationToken)
+    {
+        return _httpClient.GetFromJsonAsync<HealthCheckResponse>("api/health", cancellationToken);
+    }
+
     private sealed class VersionResponse
     {
         public string Version { get; set; } = string.Empty;
