@@ -3,28 +3,55 @@ using AHKFlow.UI.Blazor.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
+using Serilog;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
-builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Get API base URL from configuration
-string apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
+// Configure Serilog from appsettings
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
 
-// Register typed HttpClient for API calls with resilience
-builder.Services.AddHttpClient<IAhkFlowApiHttpClient, AhkFlowApiHttpClient>(client =>
+try
 {
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-})
-.AddStandardResilienceHandler();
+    Log.Information("AHKFlow Blazor UI starting up");
 
-builder.Services.AddMudServices();
+    builder.RootComponents.Add<App>("#app");
+    builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddMsalAuthentication(options =>
+    // Use Serilog for logging
+    builder.Logging.ClearProviders();
+    builder.Logging.AddSerilog(Log.Logger);
+
+    // Get API base URL from configuration
+    string apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
+
+    // Register typed HttpClient for API calls with resilience
+    builder.Services.AddHttpClient<IAhkFlowApiHttpClient, AhkFlowApiHttpClient>(client =>
+    {
+        client.BaseAddress = new Uri(apiBaseUrl);
+        client.Timeout = TimeSpan.FromSeconds(30);
+    })
+    .AddStandardResilienceHandler();
+
+    builder.Services.AddMudServices();
+
+    builder.Services.AddMsalAuthentication(options =>
+    {
+        builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
+        options.ProviderOptions.LoginMode = "redirect";
+    });
+
+    Log.Information("AHKFlow Blazor UI configured successfully");
+
+    await builder.Build().RunAsync();
+}
+catch (Exception ex)
 {
-    builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-    options.ProviderOptions.LoginMode = "redirect";
-});
-
-await builder.Build().RunAsync();
+    Log.Fatal(ex, "AHKFlow Blazor UI failed to start");
+    throw;
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+}
