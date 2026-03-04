@@ -1,4 +1,5 @@
 using AHKFlow.Infrastructure.Services;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Serilog.Events;
 
@@ -41,8 +42,34 @@ try
     // Register services
     builder.Services.AddSingleton<IVersionService, VersionService>();
 
+    builder.Services.AddProblemDetails(options =>
+    {
+        options.CustomizeProblemDetails = context =>
+        {
+            context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+        };
+    });
+
     // Add controllers and API documentation
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .ConfigureApiBehaviorOptions(options =>
+        {
+            options.InvalidModelStateResponseFactory = context =>
+            {
+                var validationProblemDetails = new ValidationProblemDetails(context.ModelState)
+                {
+                    Detail = "See the errors field for details.",
+                    Instance = context.HttpContext.Request.Path,
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Title = "One or more validation errors occurred."
+                };
+
+                return new UnprocessableEntityObjectResult(validationProblemDetails)
+                {
+                    ContentTypes = { "application/problem+json" }
+                };
+            };
+        });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
@@ -60,7 +87,6 @@ try
     });
 
     // Configure middleware pipeline
-    // Add Problem Details middleware for consistent error handling
     app.UseStatusCodePages();
 
     if (app.Environment.IsDevelopment())
