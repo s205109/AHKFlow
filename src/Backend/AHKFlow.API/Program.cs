@@ -89,7 +89,6 @@ try
 
     // Configure middleware pipeline
     app.UseMiddleware<GlobalExceptionMiddleware>();
-    app.UseStatusCodePages();
 
     if (app.Environment.IsDevelopment())
     {
