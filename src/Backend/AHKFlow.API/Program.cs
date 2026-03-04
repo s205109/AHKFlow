@@ -1,3 +1,4 @@
+using AHKFlow.API.Middleware;
 using AHKFlow.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -87,17 +88,13 @@ try
     });
 
     // Configure middleware pipeline
+    app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseStatusCodePages();
 
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
-    }
-    else
-    {
-        // Use exception handler in production
-        app.UseExceptionHandler();
     }
 
     app.UseHttpsRedirection();
