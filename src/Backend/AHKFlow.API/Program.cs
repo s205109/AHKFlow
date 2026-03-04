@@ -91,8 +91,8 @@ try
 
     WebApplication app = builder.Build();
 
-    // Apply migrations automatically in Development and Docker environments
-    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
+    // Apply migrations automatically in Development
+    if (app.Environment.IsDevelopment())
     {
         using var scope = app.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AHKFlowDbContext>();
@@ -125,7 +125,7 @@ try
     // Configure middleware pipeline
     app.UseMiddleware<GlobalExceptionMiddleware>();
 
-    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Docker"))
+    if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI();

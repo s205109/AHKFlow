@@ -1,57 +1,15 @@
 # Docker Development Setup
 
-This guide explains how to run AHKFlow services locally using Docker.
-
-## Prerequisites
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- .NET 10 SDK (for local development without Docker)
-
-## Quick Start with Docker Compose (Recommended)
-
-Docker Compose provides a complete local development environment with both the API and SQL Server.
-
-### Start all services
+## Quick Start
 
 ```bash
 # From solution root
 docker compose up -d --build
 ```
 
-### Access the API
-
-- **Swagger UI**: http://localhost:5600/swagger
-- **API Base URL**: http://localhost:5600/api
-
-### View logs
-
-```bash
-# All services
-docker compose logs -f
-
-# API only
-docker logs ahkflow-api -f
-
-# SQL Server only
-docker logs ahkflow-sqlserver -f
-```
-
-### Stop services
-
-```bash
-docker compose down
-```
-
-### Reset database (removes all data)
-
-```bash
-docker compose down -v
-docker compose up -d --build
-```
+Access API at: http://localhost:5600/swagger
 
 ## Visual Studio Launch Profiles
-
-Three launch profiles are configured in `launchSettings.json`:
 
 ### 1. https (LocalDB)
 
@@ -64,6 +22,7 @@ Three launch profiles are configured in `launchSettings.json`:
 - Starts both API and SQL Server containers
 - Runs `docker compose up --build -d` from solution root
 - Access API at http://localhost:5600/swagger
+- Waits for services to be ready before opening browser
 
 ### 3. Docker (API only)
 
@@ -87,60 +46,27 @@ docker run -d \
 
 ## Connection Strings
 
-| Environment | Connection String |
-|------------|-------------------|
-| LocalDB (Development) | `Server=(localdb)\MSSQLLocalDB;Database=AHKFlowDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True` |
-| Docker | `Server=sqlserver,1433;Database=AHKFlowDb;User Id=sa;Password=AHKFlow_Dev!2026;TrustServerCertificate=True;MultipleActiveResultSets=true` |
+The default connection string is configured in `appsettings.Development.json`:
 
-## Database Migrations
-
-Migrations are automatically applied when the API starts in `Development` or `Docker` environments.
-
-### Create a new migration
-
-```bash
-cd src/Backend/AHKFlow.Infrastructure
-dotnet ef migrations add <MigrationName> --startup-project ../AHKFlow.API
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=AHKFlowDb;..."
+}
 ```
 
-### Apply migrations manually
+Docker profiles override this via the `ConnectionStrings__DefaultConnection` environment variable:
 
+| Profile | Server | Set By |
+|---------|--------|--------|
+| https (LocalDB) | `(localdb)\MSSQLLocalDB` | appsettings.Development.json |
+| Docker Compose | `sqlserver,1433` | docker-compose.yml |
+| Docker (API only) | `host.docker.internal,1433` | launchSettings.json |
+
+### Overriding Connection Strings
+
+You can override via environment variables:
 ```bash
-cd src/Backend/AHKFlow.API
-dotnet ef database update
-```
-
-## Troubleshooting
-
-### Container won't start
-
-```bash
-# Check container status
-docker ps -a
-
-# View container logs
-docker logs ahkflow-api
-
-# Rebuild from scratch
-docker compose down -v
-docker compose up -d --build
-```
-
-### Database connection issues
-
-1. Ensure SQL Server container is healthy: `docker ps` should show "healthy"
-2. Wait for SQL Server to fully start (30+ seconds on first run)
-3. Check connection string matches the environment
-
-### Port conflicts
-
-If ports 5600 or 1433 are already in use:
-
-```bash
-# Find what's using the port
-netstat -ano | findstr :5600
-
-# Or modify docker-compose.yml to use different ports
+ConnectionStrings__DefaultConnection="Server=myserver;Database=AHKFlowDb;..."
 ```
 
 ## Architecture
