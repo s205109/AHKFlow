@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AHKFlow.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class HealthController : ControllerBase
     {
         private readonly ILogger<HealthController> _logger;

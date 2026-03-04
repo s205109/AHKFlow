@@ -137,6 +137,7 @@ Follow these rules for all code generation:
 - **Service layer**: Business logic in Application services (e.g., `IScriptGenerationService`)
 - **Dependency injection**: Use constructor injection throughout
 - **API-first design**: RESTful endpoints (`GET /api/hotstrings`, `POST /api/hotstrings`, etc.)
+- **API versioning**: Use path-based versioning for API routes (for example, `api/v1/[controller]`)
 - **Authentication**: Microsoft Authentication Library (MSAL) with Azure AD
 - **Validation boundary**: FluentValidation on DTOs in Application layer
 - **Mapping**: Mapster for DTO ↔ Domain entity conversion
