@@ -19,7 +19,7 @@ namespace AHKFlow.API.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(VersionResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<VersionResponse>> GetVersionAsync(CancellationToken cancellationToken)
         {
             try
@@ -31,7 +31,14 @@ namespace AHKFlow.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, ErrorMessage);
-                return StatusCode(StatusCodes.Status500InternalServerError, ErrorMessage);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "Internal Server Error",
+                    Detail = ErrorMessage,
+                    Instance = HttpContext.Request.Path
+                });
             }
         }
 
