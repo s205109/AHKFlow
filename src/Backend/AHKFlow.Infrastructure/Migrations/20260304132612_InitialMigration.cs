@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-
-#nullable disable
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AHKFlow.Infrastructure.Migrations
 {
@@ -29,8 +26,8 @@ namespace AHKFlow.Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "TestMessages",
-                columns: new[] { "Id", "Category", "CreatedAt", "Message", "UpdatedAt" },
-                values: new object[] { 1, "test", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "hello test record", null });
+                columns: ["Id", "Category", "CreatedAt", "Message", "UpdatedAt"],
+                values: [1, "test", new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "hello test record", null]);
         }
 
         /// <inheritdoc />

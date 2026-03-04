@@ -1,0 +1,44 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ahkflow-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=AHKFlow_Dev!2026
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "AHKFlow_Dev!2026" -Q "SELECT 1" -C || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - ahkflow-network
+
+  ahkflow-api:
+    build:
+      context: .
+      dockerfile: src/Backend/AHKFlow.API/Dockerfile
+    container_name: ahkflow-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=AHKFlowDb;User Id=sa;Password=AHKFlow_Dev!2026;TrustServerCertificate=True;MultipleActiveResultSets=true
+    ports:
+      - "5600:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - ahkflow-network
+
+volumes:
+  sqlserver-data:
+
+networks:
+  ahkflow-network:
+    driver: bridge

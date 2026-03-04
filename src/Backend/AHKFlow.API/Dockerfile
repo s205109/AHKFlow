@@ -12,10 +12,13 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["AHKFlow.API/AHKFlow.API.csproj", "AHKFlow.API/"]
-RUN dotnet restore "./AHKFlow.API/AHKFlow.API.csproj"
+COPY ["src/Backend/AHKFlow.API/AHKFlow.API.csproj", "src/Backend/AHKFlow.API/"]
+COPY ["src/Backend/AHKFlow.Application/AHKFlow.Application.csproj", "src/Backend/AHKFlow.Application/"]
+COPY ["src/Backend/AHKFlow.Domain/AHKFlow.Domain.csproj", "src/Backend/AHKFlow.Domain/"]
+COPY ["src/Backend/AHKFlow.Infrastructure/AHKFlow.Infrastructure.csproj", "src/Backend/AHKFlow.Infrastructure/"]
+RUN dotnet restore "./src/Backend/AHKFlow.API/AHKFlow.API.csproj"
 COPY . .
-WORKDIR "/src/AHKFlow.API"
+WORKDIR "/src/src/Backend/AHKFlow.API"
 RUN dotnet build "./AHKFlow.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
