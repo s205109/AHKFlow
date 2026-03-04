@@ -52,24 +52,17 @@ namespace AHKFlow.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetHealthAsync_ShouldReturnServiceUnavailable_WhenVersionServiceThrows()
+        public async Task GetHealthAsync_ShouldPropagateException_WhenVersionServiceThrows()
         {
             // Arrange
             _versionService.GetVersionAsync(Arg.Any<CancellationToken>())
                 .Returns(Task.FromException<string>(new Exception("Service unavailable")));
 
             // Act
-            ActionResult<HealthController.HealthResponse> result = await _controller.GetHealthAsync(CancellationToken.None);
+            var act = async () => await _controller.GetHealthAsync(CancellationToken.None);
 
-            // Assert
-            result.Should().NotBeNull();
-            ObjectResult objectResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
-            objectResult.StatusCode.Should().Be(StatusCodes.Status503ServiceUnavailable);
-
-            var problemDetails = objectResult.Value as ProblemDetails;
-            problemDetails.Should().NotBeNull();
-            problemDetails!.Status.Should().Be(StatusCodes.Status503ServiceUnavailable);
-            problemDetails.Title.Should().Be("Service Unavailable");
+            // Assert - exception propagates to GlobalExceptionMiddleware which returns 500
+            await act.Should().ThrowAsync<Exception>().WithMessage("Service unavailable");
         }
     }
 }
