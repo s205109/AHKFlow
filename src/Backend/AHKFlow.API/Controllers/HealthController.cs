@@ -1,5 +1,6 @@
 using AHKFlow.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace AHKFlow.API.Controllers
 {
@@ -9,11 +10,13 @@ namespace AHKFlow.API.Controllers
     {
         private readonly ILogger<HealthController> _logger;
         private readonly IVersionService _versionService;
+        private readonly IHostEnvironment _hostEnvironment;
 
-        public HealthController(ILogger<HealthController> logger, IVersionService versionService)
+        public HealthController(ILogger<HealthController> logger, IVersionService versionService, IHostEnvironment hostEnvironment)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _versionService = versionService ?? throw new ArgumentNullException(nameof(versionService));
+            _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
         }
 
         [HttpGet]
@@ -22,7 +25,7 @@ namespace AHKFlow.API.Controllers
         public async Task<ActionResult<HealthResponse>> GetHealthAsync(CancellationToken cancellationToken)
         {
             string version = await _versionService.GetVersionAsync(cancellationToken);
-            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            string environment = _hostEnvironment.EnvironmentName;
 
             _logger.LogInformation("Health check successful");
 
