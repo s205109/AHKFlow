@@ -25,7 +25,7 @@ services:
       dockerfile: src/Backend/AHKFlow.API/Dockerfile
     container_name: ahkflow-api
     environment:
-      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=AHKFlowDb;User Id=sa;Password=AHKFlow_Dev!2026;TrustServerCertificate=True;MultipleActiveResultSets=true
     ports:
