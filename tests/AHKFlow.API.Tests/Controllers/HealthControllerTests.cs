@@ -1,4 +1,5 @@
 using AHKFlow.API.Controllers;
+using AHKFlow.API.Models;
 using AHKFlow.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -41,12 +42,12 @@ namespace AHKFlow.API.Tests.Controllers
                 .Returns(Task.FromResult(expectedVersion));
 
             // Act
-            ActionResult<HealthController.HealthResponse> result = await _controller.GetHealthAsync(CancellationToken.None);
+            ActionResult<HealthResponse> result = await _controller.GetHealthAsync(CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
             OkObjectResult okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value as HealthController.HealthResponse;
+            var response = okResult.Value as HealthResponse;
 
             response.Should().NotBeNull();
             response!.Status.Should().Be("Healthy");
@@ -57,7 +58,7 @@ namespace AHKFlow.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetHealthAsync_ShouldPropagateException_WhenVersionServiceThrows()
+        public Task GetHealthAsync_ShouldPropagateException_WhenVersionServiceThrows()
         {
             // Arrange
             _versionService.GetVersionAsync(Arg.Any<CancellationToken>())
@@ -67,7 +68,7 @@ namespace AHKFlow.API.Tests.Controllers
             Func<Task> act = async () => await _controller.GetHealthAsync(CancellationToken.None);
 
             // Assert - exception propagates to GlobalExceptionMiddleware
-            await act.Should().ThrowAsync<Exception>().WithMessage("Service unavailable");
+            return act.Should().ThrowAsync<Exception>().WithMessage("Service unavailable");
         }
     }
 }

@@ -24,9 +24,9 @@ public class AhkFlowApiHttpClient : IAhkFlowApiHttpClient
         return response?.Version;
     }
 
-    public Task<HealthCheckResponse?> GetHealthAsync(CancellationToken cancellationToken)
+    public Task<HealthResponse?> GetHealthAsync(CancellationToken cancellationToken)
     {
-        return _httpClient.GetFromJsonAsync<HealthCheckResponse>("api/v1/health", cancellationToken);
+        return _httpClient.GetFromJsonAsync<HealthResponse>("api/v1/health", cancellationToken);
     }
 
     private sealed class VersionResponse
