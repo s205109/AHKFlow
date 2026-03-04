@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AppData\Logs\**" />
+    <Content Remove="AppData\Logs\**" />
+    <EmbeddedResource Remove="AppData\Logs\**" />
+    <None Remove="AppData\Logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.3" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
@@ -32,6 +39,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AHKFlow.Infrastructure\AHKFlow.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AppData\" />
   </ItemGroup>
 
 </Project>
