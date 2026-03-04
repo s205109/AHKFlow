@@ -9,7 +9,6 @@ namespace AHKFlow.API.Controllers
     {
         private readonly ILogger<VersionController> _logger;
         private readonly IVersionService _versionService;
-        private const string ErrorMessage = "An unexpected error occurred while retrieving the application version.";
 
         public VersionController(ILogger<VersionController> logger, IVersionService versionService)
         {
@@ -22,24 +21,9 @@ namespace AHKFlow.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<VersionResponse>> GetVersionAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                string version = await _versionService.GetVersionAsync(cancellationToken);
+            string version = await _versionService.GetVersionAsync(cancellationToken);
 
-                return Ok(new VersionResponse(version));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ErrorMessage);
-
-                return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
-                {
-                    Status = StatusCodes.Status500InternalServerError,
-                    Title = "Internal Server Error",
-                    Detail = ErrorMessage,
-                    Instance = HttpContext.Request.Path
-                });
-            }
+            return Ok(new VersionResponse(version));
         }
 
         public record VersionResponse(string Version);
