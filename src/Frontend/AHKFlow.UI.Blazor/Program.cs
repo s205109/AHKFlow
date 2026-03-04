@@ -23,8 +23,13 @@ try
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(Log.Logger);
 
-    // Get API base URL from configuration
-    string apiBaseUrl = builder.Configuration["ApiHttpClient:BaseAddress"] ?? "https://localhost:7600";
+    var apiBaseUrlResolver = new ApiBaseUrlResolver();
+    string apiBaseUrl = await apiBaseUrlResolver.ResolveAsync(
+        builder.HostEnvironment.BaseAddress,
+        builder.Configuration["ApiHttpClient:BaseAddress"],
+        builder.Configuration.GetSection("ApiHttpClient:BaseAddressCandidates").Get<string[]>());
+
+    Log.Information("Selected API base address: {ApiBaseUrl}", apiBaseUrl);
 
     // Register typed HttpClient for API calls with resilience
     builder.Services.AddHttpClient<IAhkFlowApiHttpClient, AhkFlowApiHttpClient>(client =>
