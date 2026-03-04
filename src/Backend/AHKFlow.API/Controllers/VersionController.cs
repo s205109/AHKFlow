@@ -7,12 +7,10 @@ namespace AHKFlow.API.Controllers
     [Route("api/v1/[controller]")]
     public class VersionController : ControllerBase
     {
-        private readonly ILogger<VersionController> _logger;
         private readonly IVersionService _versionService;
 
-        public VersionController(ILogger<VersionController> logger, IVersionService versionService)
+        public VersionController(IVersionService versionService)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _versionService = versionService ?? throw new ArgumentNullException(nameof(versionService));
         }
 

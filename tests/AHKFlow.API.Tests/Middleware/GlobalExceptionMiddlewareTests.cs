@@ -15,9 +15,9 @@ namespace AHKFlow.API.Tests.Middleware
         public async Task InvokeAsync_ShouldReturnProblemDetails_WhenUnhandledExceptionOccurs()
         {
             // Arrange
-            var logger = Substitute.For<ILogger<GlobalExceptionMiddleware>>();
-            var environment = CreateEnvironment(Environments.Production);
-            RequestDelegate next = _ => throw new InvalidOperationException("boom");
+            ILogger<GlobalExceptionMiddleware> logger = Substitute.For<ILogger<GlobalExceptionMiddleware>>();
+            IHostEnvironment environment = CreateEnvironment(Environments.Production);
+            static Task next(HttpContext _) => throw new InvalidOperationException("boom");
 
             var middleware = new GlobalExceptionMiddleware(next, logger, environment);
             var context = new DefaultHttpContext();
@@ -32,7 +32,7 @@ namespace AHKFlow.API.Tests.Middleware
             context.Response.ContentType.Should().Be("application/problem+json");
 
             context.Response.Body.Position = 0;
-            using var document = await JsonDocument.ParseAsync(context.Response.Body);
+            using JsonDocument document = await JsonDocument.ParseAsync(context.Response.Body);
             document.RootElement.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status500InternalServerError);
             document.RootElement.GetProperty("title").GetString().Should().Be("Internal Server Error");
             document.RootElement.GetProperty("instance").GetString().Should().Be("/api/v1/version");
@@ -42,10 +42,10 @@ namespace AHKFlow.API.Tests.Middleware
         public async Task InvokeAsync_ShouldReturnExceptionDetailInDetail_WhenEnvironmentIsDevelopment()
         {
             // Arrange
-            var logger = Substitute.For<ILogger<GlobalExceptionMiddleware>>();
-            var environment = CreateEnvironment(Environments.Development);
-            var exceptionMessage = "boom";
-            RequestDelegate next = _ => throw new InvalidOperationException(exceptionMessage);
+            ILogger<GlobalExceptionMiddleware> logger = Substitute.For<ILogger<GlobalExceptionMiddleware>>();
+            IHostEnvironment environment = CreateEnvironment(Environments.Development);
+            string exceptionMessage = "boom";
+            Task next(HttpContext _) => throw new InvalidOperationException(exceptionMessage);
 
             var middleware = new GlobalExceptionMiddleware(next, logger, environment);
             var context = new DefaultHttpContext();
@@ -60,7 +60,7 @@ namespace AHKFlow.API.Tests.Middleware
             context.Response.ContentType.Should().Be("application/problem+json");
 
             context.Response.Body.Position = 0;
-            using var document = await JsonDocument.ParseAsync(context.Response.Body);
+            using JsonDocument document = await JsonDocument.ParseAsync(context.Response.Body);
             document.RootElement.GetProperty("status").GetInt32().Should().Be(StatusCodes.Status500InternalServerError);
             document.RootElement.GetProperty("title").GetString().Should().Be("Internal Server Error");
             document.RootElement.GetProperty("detail").GetString().Should().Be(exceptionMessage);
@@ -71,16 +71,16 @@ namespace AHKFlow.API.Tests.Middleware
         public async Task InvokeAsync_ShouldContinuePipeline_WhenNoExceptionOccurs()
         {
             // Arrange
-            var logger = Substitute.For<ILogger<GlobalExceptionMiddleware>>();
-            var environment = CreateEnvironment(Environments.Production);
-            var nextCalled = false;
+            ILogger<GlobalExceptionMiddleware> logger = Substitute.For<ILogger<GlobalExceptionMiddleware>>();
+            IHostEnvironment environment = CreateEnvironment(Environments.Production);
+            bool nextCalled = false;
 
-            RequestDelegate next = _ =>
+            Task next(HttpContext _) 
             {
                 nextCalled = true;
                 return Task.CompletedTask;
-            };
-
+            }
+;
             var middleware = new GlobalExceptionMiddleware(next, logger, environment);
             var context = new DefaultHttpContext();
             context.Response.Body = new MemoryStream();
@@ -95,7 +95,7 @@ namespace AHKFlow.API.Tests.Middleware
 
         private static IHostEnvironment CreateEnvironment(string environmentName)
         {
-            var environment = Substitute.For<IHostEnvironment>();
+            IHostEnvironment environment = Substitute.For<IHostEnvironment>();
             environment.EnvironmentName.Returns(environmentName);
             environment.ApplicationName.Returns("AHKFlow.API.Tests");
             environment.ContentRootPath.Returns("C:\\");

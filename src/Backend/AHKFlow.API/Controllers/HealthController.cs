@@ -1,6 +1,6 @@
+using AHKFlow.API.Models;
 using AHKFlow.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 
 namespace AHKFlow.API.Controllers
 {
@@ -40,15 +40,6 @@ namespace AHKFlow.API.Controllers
                     ["api"] = "Healthy"
                 }
             });
-        }
-
-        public class HealthResponse
-        {
-            public string Status { get; set; } = string.Empty;
-            public string Version { get; set; } = string.Empty;
-            public string Environment { get; set; } = string.Empty;
-            public DateTime Timestamp { get; set; }
-            public Dictionary<string, string> Checks { get; set; } = new();
         }
     }
 }

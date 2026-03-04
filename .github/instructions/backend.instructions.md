@@ -26,10 +26,23 @@ applyTo:
 
 ## Key Patterns
 
+### API Response Models
+- Define response models (e.g., `HealthResponse`, `VersionResponse`) in a dedicated `Models/` folder at the API layer
+- Do **not** nest response classes inside controller classes
+- Each response model should be a single file with a clear, descriptive name
+- Use for `ProducesResponseType` attributes to document API contracts
+- Keep response models separate from Application layer DTOs
+
 ### DTOs (Application Layer)
 - Use `record` types for immutability
 - Separate read DTOs from create/update DTOs
 - Example: `HotstringDto`, `CreateHotstringDto`, `UpdateHotstringDto`
+
+### DTO vs Response Model (when to use each)
+- **DTOs** (Application layer): Used for CQRS commands/queries and service-to-service communication
+- **Response models** (API layer): Used for HTTP responses in controllers, document REST API contract
+- Frontend DTOs should mirror API response models but live in the **frontend project** (not shared)
+- Rationale: Decouples frontend and backend evolution; avoids unnecessary shared project overhead
 
 ### Repository Pattern
 - **Interfaces** in Application layer
@@ -104,5 +117,3 @@ Register in `Program.cs`:
 - Mapster with `AddMapster()` and `MappingConfig.Configure()`
 - Serilog via `UseSerilog()`
 - Authentication with Azure AD via `AddMicrosoftIdentityWebApi()`
-
-````

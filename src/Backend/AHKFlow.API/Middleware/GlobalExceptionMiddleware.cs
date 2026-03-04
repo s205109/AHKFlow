@@ -46,7 +46,7 @@ namespace AHKFlow.API.Middleware
 
                 problemDetails.Extensions["traceId"] = context.TraceIdentifier;
 
-                var payload = JsonSerializer.Serialize(problemDetails);
+                string payload = JsonSerializer.Serialize(problemDetails);
                 await context.Response.WriteAsync(payload, context.RequestAborted);
             }
         }
