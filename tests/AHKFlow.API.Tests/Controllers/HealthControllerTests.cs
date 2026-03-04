@@ -3,6 +3,7 @@ using AHKFlow.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -12,13 +13,16 @@ namespace AHKFlow.API.Tests.Controllers
     {
         private readonly ILogger<HealthController> _logger;
         private readonly IVersionService _versionService;
+        private readonly IHostEnvironment _hostEnvironment;
         private readonly HealthController _controller;
 
         public HealthControllerTests()
         {
             _logger = Substitute.For<ILogger<HealthController>>();
             _versionService = Substitute.For<IVersionService>();
-            _controller = new HealthController(_logger, _versionService)
+            _hostEnvironment = Substitute.For<IHostEnvironment>();
+            _hostEnvironment.EnvironmentName.Returns("Development");
+            _controller = new HealthController(_logger, _versionService, _hostEnvironment)
             {
                 // Setup HttpContext for controller
                 ControllerContext = new ControllerContext
@@ -47,6 +51,7 @@ namespace AHKFlow.API.Tests.Controllers
             response.Should().NotBeNull();
             response!.Status.Should().Be("Healthy");
             response.Version.Should().Be(expectedVersion);
+            response.Environment.Should().Be("Development");
             response.Checks.Should().ContainKey("api");
             response.Checks["api"].Should().Be("Healthy");
         }
