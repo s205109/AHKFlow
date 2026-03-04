@@ -130,8 +130,11 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
-
-    app.UseHttpsRedirection();
+    else
+    {
+        // Only use HTTPS redirection in production
+        app.UseHttpsRedirection();
+    }
 
     if (allowedOrigins.Length > 0)
     {
