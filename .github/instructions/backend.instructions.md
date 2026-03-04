@@ -1,4 +1,3 @@
-````instructions
 ---
 description: Backend patterns for AHKFlow
 applyTo:
@@ -57,6 +56,7 @@ applyTo:
 ### Controllers (API Layer)
 - Keep controllers thin - delegate to Application layer
 - Use `[ApiController]` and `[Authorize]` attributes
+- Use path-based API versioning in routes (for example, `[Route("api/v1/[controller]")]`)
 - Inject repositories, validators, mapper, and logger
 - Return appropriate HTTP status codes (200, 201, 204, 400, 404)
 - Use `ProducesResponseType` for OpenAPI documentation

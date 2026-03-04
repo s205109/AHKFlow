@@ -7,50 +7,47 @@
 
 <MudText Typo="Typo.h4" GutterBottom="true">System Health</MudText>
 
-<MudPaper Class="pa-6">
+<MudPaper Class="pa-4">
     @if (_isLoading)
     {
-        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Small" />
         <MudText Typo="Typo.body2" Class="mt-2">Checking system health...</MudText>
     }
     else if (_healthCheck != null)
     {
-        <MudGrid>
-            <MudItem xs="12" sm="6" md="3">
-                <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Status</MudText>
-                    <MudText Typo="Typo.h5" Color="@(_healthCheck.Status == "Healthy" ? Color.Success : Color.Error)">
-                        @_healthCheck.Status
-                    </MudText>
-                </MudPaper>
-            </MudItem>
-
-            <MudItem xs="12" sm="6" md="3">
-                <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Version</MudText>
-                    <MudText Typo="Typo.h6">@_healthCheck.Version</MudText>
-                </MudPaper>
-            </MudItem>
-
-            <MudItem xs="12" sm="6" md="3">
-                <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Environment</MudText>
-                    <MudText Typo="Typo.h6">@_healthCheck.Environment</MudText>
-                </MudPaper>
-            </MudItem>
-
-            <MudItem xs="12" sm="6" md="3">
-                <MudPaper Class="pa-4" Elevation="2">
-                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Timestamp</MudText>
-                    <MudText Typo="Typo.body2">@_healthCheck.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") UTC</MudText>
-                </MudPaper>
-            </MudItem>
-        </MudGrid>
+        <MudSimpleTable Dense="true" Striped="true">
+            <tbody>
+                <tr>
+                    <td><strong>Status</strong></td>
+                    <td>
+                        <MudText Typo="Typo.body1" Color="@(_healthCheck.Status == "Healthy" ? Color.Success : Color.Error)">
+                            @_healthCheck.Status
+                        </MudText>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Version</strong></td>
+                    <td>
+                        <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere;word-break:break-word;">
+                            @_healthCheck.Version
+                        </MudText>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Environment</strong></td>
+                    <td>@_healthCheck.Environment</td>
+                </tr>
+                <tr>
+                    <td><strong>Timestamp</strong></td>
+                    <td>@_healthCheck.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") UTC</td>
+                </tr>
+            </tbody>
+        </MudSimpleTable>
 
         @if (_healthCheck.Checks.Any())
         {
-            <MudText Typo="Typo.h6" Class="mt-6 mb-2">Component Checks</MudText>
-            <MudSimpleTable Striped="true" Dense="true">
+            <MudText Typo="Typo.h6" Class="mt-4 mb-2">Component Checks</MudText>
+            <MudSimpleTable Dense="true" Striped="true">
                 <thead>
                     <tr>
                         <th>Component</th>
