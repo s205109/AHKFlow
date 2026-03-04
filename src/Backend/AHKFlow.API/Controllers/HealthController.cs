@@ -1,6 +1,8 @@
 using AHKFlow.API.Models;
+using AHKFlow.Infrastructure.Data;
 using AHKFlow.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AHKFlow.API.Controllers
 {
@@ -11,12 +13,18 @@ namespace AHKFlow.API.Controllers
         private readonly ILogger<HealthController> _logger;
         private readonly IVersionService _versionService;
         private readonly IHostEnvironment _hostEnvironment;
+        private readonly AHKFlowDbContext _dbContext;
 
-        public HealthController(ILogger<HealthController> logger, IVersionService versionService, IHostEnvironment hostEnvironment)
+        public HealthController(
+            ILogger<HealthController> logger,
+            IVersionService versionService,
+            IHostEnvironment hostEnvironment,
+            AHKFlowDbContext dbContext)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _versionService = versionService ?? throw new ArgumentNullException(nameof(versionService));
             _hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
         [HttpGet]
@@ -27,18 +35,40 @@ namespace AHKFlow.API.Controllers
             string version = await _versionService.GetVersionAsync(cancellationToken);
             string environment = _hostEnvironment.EnvironmentName;
 
-            _logger.LogInformation("Health check successful");
+            var checks = new Dictionary<string, string>
+            {
+                ["api"] = "Healthy"
+            };
+
+            // Check database connectivity
+            try
+            {
+                bool canConnect = await _dbContext.Database.CanConnectAsync(cancellationToken);
+                checks["database"] = canConnect ? "Healthy" : "Unhealthy";
+
+                if (canConnect)
+                {
+                    int testMessageCount = await _dbContext.TestMessages.CountAsync(cancellationToken);
+                    checks["database_records"] = testMessageCount.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Database health check failed");
+                checks["database"] = "Unhealthy";
+            }
+
+            string overallStatus = checks.Values.All(v => v == "Healthy" || int.TryParse(v, out _)) ? "Healthy" : "Degraded";
+
+            _logger.LogInformation("Health check completed with status: {Status}", overallStatus);
 
             return Ok(new HealthResponse
             {
-                Status = "Healthy",
+                Status = overallStatus,
                 Version = version,
                 Environment = environment,
                 Timestamp = DateTime.UtcNow,
-                Checks = new Dictionary<string, string>
-                {
-                    ["api"] = "Healthy"
-                }
+                Checks = checks
             });
         }
     }
