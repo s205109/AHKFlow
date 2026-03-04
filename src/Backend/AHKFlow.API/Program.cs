@@ -1,6 +1,8 @@
 using AHKFlow.API.Middleware;
+using AHKFlow.Infrastructure.Data;
 using AHKFlow.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
@@ -43,6 +45,19 @@ try
     // Register services
     builder.Services.AddSingleton<IVersionService, VersionService>();
 
+    // Configure database
+    string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+    builder.Services.AddDbContext<AHKFlowDbContext>(options =>
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null);
+        }));
+
     builder.Services.AddProblemDetails(options =>
     {
         options.CustomizeProblemDetails = context =>
@@ -75,6 +90,26 @@ try
     builder.Services.AddSwaggerGen();
 
     WebApplication app = builder.Build();
+
+    // Apply migrations automatically in Development
+    if (app.Environment.IsDevelopment())
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AHKFlowDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            logger.LogInformation("Applying database migrations...");
+            dbContext.Database.Migrate();
+            logger.LogInformation("Database migrations applied successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error applying database migrations.");
+            throw;
+        }
+    }
 
     // Add Serilog HTTP request logging with useful context (status code, path, duration)
     // Excludes sensitive data by default - only logs request path, method, status code, and elapsed time
