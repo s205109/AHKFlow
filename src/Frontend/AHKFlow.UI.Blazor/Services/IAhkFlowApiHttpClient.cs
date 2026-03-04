@@ -1,3 +1,5 @@
+using AHKFlow.UI.Blazor.DTOs;
+
 namespace AHKFlow.UI.Blazor.Services;
 
 public interface IAhkFlowApiHttpClient
