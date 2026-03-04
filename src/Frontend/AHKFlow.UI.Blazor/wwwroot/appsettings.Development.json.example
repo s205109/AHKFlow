@@ -5,5 +5,13 @@
         "ClientId": "YOUR_CLIENT_IDYOUR_CLIENT_ID",
         "Authority": "https://login.microsoftonline.com/YOUR_TENANT_IDYOUR_TENANT_ID",
         "ValidateAuthority": true
+    },
+    "ApiHttpClient": {
+        "BaseAddress": "YOUR_API_BASE_ADDRESS",
+        "BaseAddressCandidates": [
+            "YOUR_API_BASE_ADDRESS_LOCALDB",
+            "YOUR_API_BASE_ADDRESS_DOCKER_COMPOSE",
+            "YOUR_API_BASE_ADDRESS_DOCKER_API_ONLY"
+        ]
     }
 }
