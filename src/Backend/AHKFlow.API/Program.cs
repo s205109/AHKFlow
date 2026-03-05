@@ -102,9 +102,9 @@ try
     // Apply migrations automatically in Development
     if (app.Environment.IsDevelopment())
     {
-        using var scope = app.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AHKFlowDbContext>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        using IServiceScope scope = app.Services.CreateScope();
+        AHKFlowDbContext dbContext = scope.ServiceProvider.GetRequiredService<AHKFlowDbContext>();
+        ILogger<Program> logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
         try
         {

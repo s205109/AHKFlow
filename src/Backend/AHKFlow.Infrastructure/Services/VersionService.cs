@@ -9,7 +9,7 @@ namespace AHKFlow.Infrastructure.Services
             string version = Assembly.GetEntryAssembly()?
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion ?? "0.0.0-dev";
-            
+
             return Task.FromResult(version);
         }
     }

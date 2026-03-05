@@ -75,7 +75,7 @@ namespace AHKFlow.API.Tests.Middleware
             IHostEnvironment environment = CreateEnvironment(Environments.Production);
             bool nextCalled = false;
 
-            Task next(HttpContext _) 
+            Task next(HttpContext _)
             {
                 nextCalled = true;
                 return Task.CompletedTask;
