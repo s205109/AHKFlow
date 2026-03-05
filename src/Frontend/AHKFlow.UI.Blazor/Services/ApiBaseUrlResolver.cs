@@ -86,7 +86,7 @@ public sealed class ApiBaseUrlResolver
 
         try
         {
-            using HttpResponseMessage response = await probeClient.GetAsync("/api/version", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using HttpResponseMessage response = await probeClient.GetAsync("/api/v1/version", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             // Any HTTP response means host/port is reachable.
             return (true, $"HTTP {(int)response.StatusCode}");
         }
