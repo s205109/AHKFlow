@@ -34,6 +34,14 @@ namespace AHKFlow.API.Controllers
         {
             string version = await _versionService.GetVersionAsync(cancellationToken);
             string environment = _hostEnvironment.EnvironmentName;
+            
+            // Build API URL from request context
+            string scheme = HttpContext.Request.Scheme;
+            string host = HttpContext.Request.Host.Host;
+            int? port = HttpContext.Request.Host.Port;
+            string apiUrl = port.HasValue && port > 0 
+                ? $"{scheme}://{host}:{port}"
+                : $"{scheme}://{host}";
 
             var checks = new Dictionary<string, string>
             {
@@ -67,6 +75,7 @@ namespace AHKFlow.API.Controllers
                 Status = overallStatus,
                 Version = version,
                 Environment = environment,
+                ApiUrl = apiUrl,
                 Timestamp = DateTime.UtcNow,
                 Checks = checks
             });
