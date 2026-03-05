@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <!-- 
+            Exclude specific types/assemblies from coverage
+            Format: [AssemblyName]Namespace.ClassName
+          -->
+          <Exclude>
+            <!-- Exclude Program.cs startup files -->
+            [AHKFlow.API]Program,
+            [AHKFlow.UI.Blazor]Program,
+            
+            <!-- Exclude EF Core migrations -->
+            [AHKFlow.Infrastructure]AHKFlow.Infrastructure.Data.Migrations.*,
+            
+            <!-- Exclude auto-generated files -->
+            [*]*.Designer,
+            [*]*.g.cs,
+            [*]*.g.i.cs
+          </Exclude>
+          
+          <!-- 
+            Include only specific assemblies in coverage
+            Uncomment to use (when uncommented, ONLY these assemblies will be included)
+          -->
+          <!-- 
+          <Include>
+            [AHKFlow.Domain]*,
+            [AHKFlow.Application]*,
+            [AHKFlow.Infrastructure]*,
+            [AHKFlow.API]*
+          </Include>
+          -->
+          
+          <!-- 
+            Exclude specific attributes
+            Any code decorated with these attributes will be excluded
+          -->
+          <ExcludeByAttribute>
+            Obsolete,
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
+          
+          <!-- 
+            Exclude specific files by path pattern
+          -->
+          <ExcludeByFile>
+            <!-- Exclude designer files -->
+            **/*.Designer.cs,
+
+            <!-- Exclude auto-generated files -->
+            **/*.g.cs,
+            **/*.g.i.cs,
+
+            <!-- Exclude migration files -->
+            **/Migrations/*.cs,
+
+            <!-- Exclude source-generated files in obj folders -->
+            **/obj/**/*.cs
+          </ExcludeByFile>
+          
+          <!-- 
+            Include test assembly in coverage
+            Set to true only if you want to measure test coverage itself
+          -->
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          
+          <!-- 
+            Single hit determines whether a single hit is enough to count as covered
+            Default: false (multiple hits required for loops/conditionals)
+          -->
+          <SingleHit>false</SingleHit>
+          
+          <!-- 
+            Include directories for source files
+          -->
+          <IncludeDirectory>
+            <!-- Include source directories -->
+          </IncludeDirectory>
+          
+          <!-- 
+            Merge coverage results across test runs
+          -->
+          <UseSourceLink>true</UseSourceLink>
+          
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+  
+  <!-- 
+    Run configuration
+  -->
+  <RunConfiguration>
+    <!-- Parallel execution -->
+    <MaxCpuCount>0</MaxCpuCount>
+    
+    <!-- Results directory -->
+    <ResultsDirectory>./coverage</ResultsDirectory>
+    
+    <!-- Target platform -->
+    <TargetPlatform>x64</TargetPlatform>
+    
+    <!-- Target framework -->
+    <TargetFrameworkVersion>net10.0</TargetFrameworkVersion>
+    
+    <!-- Disable app domains for better performance -->
+    <DisableAppDomain>true</DisableAppDomain>
+  </RunConfiguration>
+  
+  <!-- 
+    Test execution configuration
+  -->
+  <TestRunParameters>
+    <!-- Add custom test parameters here -->
+  </TestRunParameters>
+  
+</RunSettings>

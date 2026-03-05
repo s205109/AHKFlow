@@ -7,6 +7,15 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>opencover,cobertura,json</CoverletOutputFormat>
+    <CoverletOutput>$(MSBuildProjectDirectory)/coverage/</CoverletOutput>
+    <Threshold>80</Threshold>
+    <ThresholdType>line,branch,method</ThresholdType>
+    <ThresholdStat>total</ThresholdStat>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>

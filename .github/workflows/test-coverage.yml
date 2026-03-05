@@ -1,0 +1,99 @@
+name: Tests and Coverage
+
+on:
+  push:
+    branches: [ main, develop, feature/**, fix/**, hotfix/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Debug
+      
+      - name: Run tests with coverage
+        run: dotnet test --no-build --configuration Debug --collect:"XPlat Code Coverage" --results-directory ./coverage --logger "trx;LogFileName=test-results.trx"
+      
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+      - name: Generate coverage report
+        run: |
+          reportgenerator \
+            "-reports:./coverage/**/coverage.cobertura.xml" \
+            "-targetdir:./coverage/report" \
+            "-reporttypes:Html;HtmlSummary;Cobertura;JsonSummary;MarkdownSummaryGithub"
+      
+      - name: Display coverage summary
+        run: |
+          echo "## 📊 Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          cat ./coverage/report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/**/coverage.cobertura.xml
+          fail_ci_if_error: false
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Upload coverage report artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: ./coverage/report
+          retention-days: 7
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: ./coverage/**/*.trx
+          retention-days: 7
+      
+      - name: Check coverage threshold
+        run: |
+          # Extract coverage percentage from Summary.json
+          LINE_COVERAGE=$(jq -r '.summary.linecoverage' ./coverage/report/Summary.json)
+          BRANCH_COVERAGE=$(jq -r '.summary.branchcoverage' ./coverage/report/Summary.json)
+          METHOD_COVERAGE=$(jq -r '.summary.methodcoverage' ./coverage/report/Summary.json)
+          
+          echo "Line Coverage: ${LINE_COVERAGE}%"
+          echo "Branch Coverage: ${BRANCH_COVERAGE}%"
+          echo "Method Coverage: ${METHOD_COVERAGE}%"
+          
+          # Warn if below threshold (but don't fail CI)
+          THRESHOLD=80
+          if (( $(echo "$LINE_COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️ Warning: Line coverage (${LINE_COVERAGE}%) is below threshold (${THRESHOLD}%)"
+          fi
+          if (( $(echo "$BRANCH_COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️ Warning: Branch coverage (${BRANCH_COVERAGE}%) is below threshold (${THRESHOLD}%)"
+          fi
+          if (( $(echo "$METHOD_COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "⚠️ Warning: Method coverage (${METHOD_COVERAGE}%) is below threshold (${THRESHOLD}%)"
+          fi
