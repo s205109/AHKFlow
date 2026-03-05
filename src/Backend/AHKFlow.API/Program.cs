@@ -1,3 +1,4 @@
+using AHKFlow.API;
 using AHKFlow.API.Middleware;
 using AHKFlow.Infrastructure.Data;
 using AHKFlow.Infrastructure.Services;
@@ -24,6 +25,13 @@ try
     builder.Services.AddSerilog((services, configuration) => configuration
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services));
+
+    // Start SQL Server in Docker if requested (for "https + Docker SQL" launch profile)
+    if (builder.Environment.IsDevelopment() &&
+        string.Equals(Environment.GetEnvironmentVariable("AHKFLOW_START_DOCKER_SQL"), "true", StringComparison.OrdinalIgnoreCase))
+    {
+        DevDockerSqlServer.EnsureStarted(builder.Environment.ContentRootPath);
+    }
 
     // Add CORS - allowed origins are configured in appsettings (Cors:AllowedOrigins)
     const string corsPolicyName = "AllowConfiguredOrigins";
