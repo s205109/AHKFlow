@@ -33,14 +33,7 @@ namespace AHKFlow.API.Tests.Controllers
                 .Options;
             _dbContext = new AHKFlowDbContext(options);
 
-            _controller = new HealthController(_logger, _versionService, _hostEnvironment, _dbContext)
-            {
-                // Setup HttpContext for controller
-                ControllerContext = new ControllerContext
-                {
-                    HttpContext = new DefaultHttpContext()
-                }
-            };
+            _controller = new HealthController(_logger, _versionService, _hostEnvironment, _dbContext);
         }
 
         public void Dispose()
@@ -57,6 +50,15 @@ namespace AHKFlow.API.Tests.Controllers
             _versionService.GetVersionAsync(Arg.Any<CancellationToken>())
                 .Returns(Task.FromResult(expectedVersion));
 
+            // Setup HttpContext with request details
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Scheme = "https";
+            httpContext.Request.Host = new HostString("localhost", 7600);
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+
             // Act
             ActionResult<HealthResponse> result = await _controller.GetHealthAsync(CancellationToken.None);
 
@@ -69,6 +71,7 @@ namespace AHKFlow.API.Tests.Controllers
             response!.Status.Should().Be("Healthy");
             response.Version.Should().Be(expectedVersion);
             response.Environment.Should().Be("Development");
+            response.ApiUrl.Should().Be("https://localhost:7600");
             response.Checks.Should().ContainKey("api");
             response.Checks["api"].Should().Be("Healthy");
             response.Checks.Should().ContainKey("database");
