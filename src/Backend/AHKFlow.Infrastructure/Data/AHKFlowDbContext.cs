@@ -10,7 +10,7 @@ namespace AHKFlow.Infrastructure.Data
         {
         }
 
-        public DbSet<TestMessage> TestMessages { get; set; }
+        public DbSet<TestMessage> TestMessages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
