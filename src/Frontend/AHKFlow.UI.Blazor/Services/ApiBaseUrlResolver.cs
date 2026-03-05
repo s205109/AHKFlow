@@ -4,6 +4,13 @@ namespace AHKFlow.UI.Blazor.Services;
 
 public sealed class ApiBaseUrlResolver
 {
+    /// <summary>
+    /// Default API endpoint candidates matching Backend launchSettings.json profiles:
+    /// - https://localhost:7600 - "https (LocalDB)" profile (HTTPS)
+    /// - http://localhost:5600  - "https (LocalDB)" profile (HTTP)
+    /// - http://localhost:5602  - "Docker Compose (Recommended)" profile
+    /// - http://localhost:5604  - "Docker (API only)" profile
+    /// </summary>
     private static readonly string[] DefaultCandidates =
     [
         "https://localhost:7600",
@@ -20,7 +27,7 @@ public sealed class ApiBaseUrlResolver
     {
         Log.Information("Starting API endpoint auto-detection...");
 
-        var candidates = BuildCandidates(configuredBaseAddress, configuredCandidates);
+        List<string> candidates = BuildCandidates(configuredBaseAddress, configuredCandidates);
         var orderedCandidates = OrderByPreferredScheme(candidates, hostBaseAddress);
 
         Log.Information("Trying {Count} API candidates in priority order...", orderedCandidates.Count);
@@ -66,9 +73,7 @@ public sealed class ApiBaseUrlResolver
     {
         var hostScheme = GetScheme(hostBaseAddress);
 
-        return candidates
-            .OrderByDescending(value => string.Equals(GetScheme(value), hostScheme, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return [.. candidates.OrderByDescending(value => string.Equals(GetScheme(value), hostScheme, StringComparison.OrdinalIgnoreCase))];
     }
 
     private static async Task<(bool Reachable, string Reason)> CanReachApiAsync(string baseAddress, CancellationToken cancellationToken)

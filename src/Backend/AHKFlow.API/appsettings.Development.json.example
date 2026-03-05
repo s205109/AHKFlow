@@ -1,6 +1,9 @@
 {
     // Copy this file to appsettings.Development.json and fill in your values
     // appsettings.Development.json is gitignored
+    "AppSettings": {
+        "Environment": "dev"
+    },
     "AzureAd": {
         "Instance": "https://login.microsoftonline.com/",
         "ClientId": "YOUR_CLIENT_ID",
@@ -8,16 +11,25 @@
         "CallbackPath": "/signin-oidc",
         "Scopes": "access_as_user"
     },
+    "ConnectionStrings": {
+        // LocalDB connection (default for 'https (LocalDB)' profile)
+        "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=AHKFlowDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+    },
     "Cors": {
+        // Only frontend origins - these match Frontend launchSettings.json
+        // https://localhost:7601 (Frontend HTTPS)
+        // http://localhost:5601  (Frontend HTTP)
         "AllowedOrigins": [
             "https://localhost:7601",
             "http://localhost:5601"
         ]
     },
-    "Logging": {
-        "LogLevel": {
-            "Default": "Debug",
-            "Microsoft.AspNetCore": "Information"
+    "Serilog": {
+        "MinimumLevel": {
+            "Default": "Warning",
+            "Override": {
+                "AHKFlow": "Debug"
+            }
         }
     }
 }
