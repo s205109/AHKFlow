@@ -78,9 +78,14 @@ public sealed class ApiBaseUrlResolver
 
     private static async Task<(bool Reachable, string Reason)> CanReachApiAsync(string baseAddress, CancellationToken cancellationToken)
     {
+        if (!Uri.TryCreate(baseAddress, UriKind.Absolute, out Uri? uri))
+        {
+            return (false, "Invalid base address");
+        }
+
         using var probeClient = new HttpClient
         {
-            BaseAddress = new Uri(baseAddress),
+            BaseAddress = uri,
             Timeout = TimeSpan.FromSeconds(2)
         };
 
