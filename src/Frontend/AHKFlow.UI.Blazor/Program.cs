@@ -22,8 +22,7 @@ try
     // Use Serilog for logging
     builder.Logging.ClearProviders();
     builder.Logging.AddSerilog(Log.Logger);
-
-    var apiBaseUrlResolver = new ApiBaseUrlResolver();
+    
     string apiBaseUrl = await ApiBaseUrlResolver.ResolveAsync(
         builder.HostEnvironment.BaseAddress,
         builder.Configuration["ApiHttpClient:BaseAddress"],
