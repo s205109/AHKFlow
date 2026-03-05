@@ -28,7 +28,7 @@ namespace AHKFlow.API.Tests.Controllers
             _hostEnvironment.EnvironmentName.Returns("Development");
 
             // Use in-memory database for testing
-            var options = new DbContextOptionsBuilder<AHKFlowDbContext>()
+            DbContextOptions<AHKFlowDbContext> options = new DbContextOptionsBuilder<AHKFlowDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             _dbContext = new AHKFlowDbContext(options);

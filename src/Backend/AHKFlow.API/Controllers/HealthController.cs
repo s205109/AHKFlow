@@ -34,12 +34,12 @@ namespace AHKFlow.API.Controllers
         {
             string version = await _versionService.GetVersionAsync(cancellationToken);
             string environment = _hostEnvironment.EnvironmentName;
-            
+
             // Build API URL from request context
             string scheme = HttpContext.Request.Scheme;
             string host = HttpContext.Request.Host.Host;
             int? port = HttpContext.Request.Host.Port;
-            string apiUrl = port.HasValue && port > 0 
+            string apiUrl = port.HasValue && port > 0
                 ? $"{scheme}://{host}:{port}"
                 : $"{scheme}://{host}";
 
@@ -68,7 +68,9 @@ namespace AHKFlow.API.Controllers
 
             string overallStatus = checks.Values.All(v => v == "Healthy" || int.TryParse(v, out _)) ? "Healthy" : "Degraded";
 
+#pragma warning disable CA1873 // Avoid potentially expensive logging
             _logger.LogInformation("Health check completed with status: {Status}", overallStatus);
+#pragma warning restore CA1873 // Avoid potentially expensive logging
 
             return Ok(new HealthResponse
             {

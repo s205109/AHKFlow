@@ -11,7 +11,7 @@ public sealed class ApiBaseUrlResolver
     /// - http://localhost:5602  - "Docker Compose (Recommended)" profile
     /// - http://localhost:5604  - "Docker (API only)" profile
     /// </summary>
-    private static readonly string[] DefaultCandidates =
+    private static readonly string[] s_defaultCandidates =
     [
         "https://localhost:7600",
         "http://localhost:5600",
@@ -19,7 +19,7 @@ public sealed class ApiBaseUrlResolver
         "http://localhost:5604"
     ];
 
-    public async Task<string> ResolveAsync(
+    public static async Task<string> ResolveAsync(
         string hostBaseAddress,
         string? configuredBaseAddress,
         string[]? configuredCandidates,
@@ -28,14 +28,14 @@ public sealed class ApiBaseUrlResolver
         Log.Information("Starting API endpoint auto-detection...");
 
         List<string> candidates = BuildCandidates(configuredBaseAddress, configuredCandidates);
-        var orderedCandidates = OrderByPreferredScheme(candidates, hostBaseAddress);
+        List<string> orderedCandidates = OrderByPreferredScheme(candidates, hostBaseAddress);
 
         Log.Information("Trying {Count} API candidates in priority order...", orderedCandidates.Count);
 
-        foreach (var candidate in orderedCandidates)
+        foreach (string candidate in orderedCandidates)
         {
             Log.Information("Probing API endpoint: {Candidate}", candidate);
-            var (reachable, reason) = await CanReachApiAsync(candidate, cancellationToken);
+            (bool reachable, string? reason) = await CanReachApiAsync(candidate, cancellationToken);
 
             if (reachable)
             {
@@ -46,14 +46,14 @@ public sealed class ApiBaseUrlResolver
             Log.Warning("✗ API endpoint unreachable: {Candidate} - {Reason}", candidate, reason);
         }
 
-        var fallback = orderedCandidates[0];
+        string fallback = orderedCandidates[0];
         Log.Warning("No API endpoints reachable, falling back to: {Fallback}", fallback);
         return fallback;
     }
 
     private static List<string> BuildCandidates(string? configuredBaseAddress, string[]? configuredCandidates)
     {
-        var candidates = (configuredCandidates is { Length: > 0 } ? configuredCandidates : DefaultCandidates)
+        var candidates = (configuredCandidates is { Length: > 0 } ? configuredCandidates : s_defaultCandidates)
             .Where(static value => !string.IsNullOrWhiteSpace(value))
             .Select(static value => Normalize(value))
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -61,7 +61,7 @@ public sealed class ApiBaseUrlResolver
 
         if (!string.IsNullOrWhiteSpace(configuredBaseAddress))
         {
-            var preferred = Normalize(configuredBaseAddress);
+            string preferred = Normalize(configuredBaseAddress);
             candidates.RemoveAll(value => string.Equals(value, preferred, StringComparison.OrdinalIgnoreCase));
             candidates.Insert(0, preferred);
         }
@@ -71,7 +71,7 @@ public sealed class ApiBaseUrlResolver
 
     private static List<string> OrderByPreferredScheme(List<string> candidates, string hostBaseAddress)
     {
-        var hostScheme = GetScheme(hostBaseAddress);
+        string hostScheme = GetScheme(hostBaseAddress);
 
         return [.. candidates.OrderByDescending(value => string.Equals(GetScheme(value), hostScheme, StringComparison.OrdinalIgnoreCase))];
     }
@@ -86,7 +86,7 @@ public sealed class ApiBaseUrlResolver
 
         try
         {
-            using var response = await probeClient.GetAsync("/api/version", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using HttpResponseMessage response = await probeClient.GetAsync("/api/version", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             // Any HTTP response means host/port is reachable.
             return (true, $"HTTP {(int)response.StatusCode}");
         }
@@ -111,7 +111,7 @@ public sealed class ApiBaseUrlResolver
 
     private static string GetScheme(string value)
     {
-        return Uri.TryCreate(value, UriKind.Absolute, out var uri)
+        return Uri.TryCreate(value, UriKind.Absolute, out Uri? uri)
             ? uri.Scheme
             : string.Empty;
     }
