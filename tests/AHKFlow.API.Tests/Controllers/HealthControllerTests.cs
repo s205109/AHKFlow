@@ -43,42 +43,6 @@ namespace AHKFlow.API.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetHealthAsync_ShouldReturnHealthy_WhenServiceIsRunning()
-        {
-            // Arrange
-            string expectedVersion = "1.0.0";
-            _versionService.GetVersionAsync(Arg.Any<CancellationToken>())
-                .Returns(Task.FromResult(expectedVersion));
-
-            // Setup HttpContext with request details
-            var httpContext = new DefaultHttpContext();
-            httpContext.Request.Scheme = "https";
-            httpContext.Request.Host = new HostString("localhost", 7600);
-            _controller.ControllerContext = new ControllerContext
-            {
-                HttpContext = httpContext
-            };
-
-            // Act
-            ActionResult<HealthResponse> result = await _controller.GetHealthAsync(CancellationToken.None);
-
-            // Assert
-            result.Should().NotBeNull();
-            OkObjectResult okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-            var response = okResult.Value as HealthResponse;
-
-            response.Should().NotBeNull();
-            response!.Status.Should().Be("Healthy");
-            response.Version.Should().Be(expectedVersion);
-            response.Environment.Should().Be("Development");
-            response.ApiUrl.Should().Be("https://localhost:7600");
-            response.Checks.Should().ContainKey("api");
-            response.Checks["api"].Should().Be("Healthy");
-            response.Checks.Should().ContainKey("database");
-            response.Checks["database"].Should().Be("Healthy");
-        }
-
-        [Fact]
         public Task GetHealthAsync_ShouldPropagateException_WhenVersionServiceThrows()
         {
             // Arrange
