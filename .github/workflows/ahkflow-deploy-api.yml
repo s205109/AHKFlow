@@ -7,7 +7,7 @@ on:
       - feature/**  # Allow testing on feature branches
     paths:
       - src/Backend/**
-      - .github/workflows/deploy-ahkflow-api.yml
+      - .github/workflows/ahkflow-deploy-api.yml  # Fixed: correct filename
   workflow_dispatch:  # Allow manual runs on any branch
 
 env:
