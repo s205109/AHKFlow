@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - feature/**  # Allow testing on feature branches
     paths:
       - src/Frontend/AHKFlow.UI.Blazor/**
       - .github/workflows/ahkflow-deploy-frontend.yml
+  workflow_dispatch:  # Allow manual runs on any branch
 
 jobs:
   deploy:

@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main
+      - feature/**  # Allow testing on feature branches
     paths:
       - src/Backend/**
       - .github/workflows/deploy-ahkflow-api.yml
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual runs on any branch
 
 env:
   DOTNET_VERSION: 10.0.x

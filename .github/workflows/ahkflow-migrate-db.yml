@@ -1,7 +1,7 @@
 name: Database Migration
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual runs on any branch (including feature branches)
     inputs:
       confirm:
         description: 'Type "migrate" to confirm'
