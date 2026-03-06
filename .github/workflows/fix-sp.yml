@@ -1,0 +1,10 @@
+name: Fix SP Workflow
+
+on: []
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: No-op
+        run: echo "This workflow was added by Copilot for troubleshooting."

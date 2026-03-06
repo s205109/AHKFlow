@@ -58,6 +58,11 @@ namespace AHKFlow.API.Controllers
                 {
                     int testMessageCount = await _dbContext.TestMessages.CountAsync(cancellationToken);
                     checks["database_records"] = testMessageCount.ToString();
+
+                    var appliedMigrations = await _dbContext.Database.GetAppliedMigrationsAsync(cancellationToken);
+                    var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
+                    checks["migrations_applied"] = appliedMigrations.Count().ToString();
+                    checks["migrations_pending"] = pendingMigrations.Count().ToString();
                 }
             }
             catch (Exception ex)

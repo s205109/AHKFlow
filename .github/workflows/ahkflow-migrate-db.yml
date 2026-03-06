@@ -1,0 +1,63 @@
+name: Database Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "migrate" to confirm'
+        required: true
+
+env:
+  DOTNET_VERSION: 10.0.x
+  APP_SERVICE_NAME: ahkflow-api-dev
+  RESOURCE_GROUP: rg-ahkflow-dev
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    name: Run EF Core Migrations
+    if: github.event.inputs.confirm == 'migrate'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install EF Core Tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Restore NuGet packages
+        run: dotnet restore src/Backend/AHKFlow.API/AHKFlow.API.csproj
+
+      - name: Build project
+        run: dotnet build src/Backend/AHKFlow.API/AHKFlow.API.csproj --configuration Release --no-restore
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AHKFLOW_AZURE_CREDENTIALS }}
+
+      - name: Run Database Migration
+        run: |
+          CONNECTION_STRING=$(az webapp config connection-string list \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[?name=='DefaultConnection'].value" -o tsv)
+
+          echo "Running EF Core migrations..."
+          cd src/Backend/AHKFlow.API
+
+          export ASPNETCORE_ENVIRONMENT=Production
+          export ConnectionStrings__DefaultConnection="$CONNECTION_STRING"
+
+          dotnet ef database update \
+            --project ../AHKFlow.Infrastructure/AHKFlow.Infrastructure.csproj \
+            --startup-project . \
+            --configuration Release \
+            --no-build \
+            --verbose
+
+          echo "Migration completed successfully!"

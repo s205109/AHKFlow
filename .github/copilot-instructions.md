@@ -298,17 +298,17 @@ Branch protection
 
 ### GitHub Actions Workflows
 
-1. deploy-ahkflow-api.yml - Backend API deployment
+1. ahkflow-deploy-api.yml - Backend API deployment
    - Triggered on push to main (Backend path changes)
    - Jobs: build → test → migrate database → deploy to Azure App Service
    - Runs EF Core migrations automatically
    - Deploys to Azure App Service (Linux)
 
-2. deploy-ahkflow-azure-static-web-app.yml - Frontend deployment
+2. ahkflow-deploy-frontend.yml - Frontend deployment
    - Triggered on push to main (Frontend path changes)
    - Builds and deploys Blazor WASM to Azure Static Web Apps
 
-3. ahkflow-migrate-database.yml - Manual database migration
+3. ahkflow-migrate-db.yml - Manual database migration
    - Manually triggered workflow for running EF Core migrations
 
 ### Azure Deployment (One-Click)

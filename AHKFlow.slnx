@@ -3,6 +3,7 @@
     <File Path="docs/AZURE_CLI_SETUP.md" />
     <File Path="docs/DOCKER_SETUP.md" />
     <File Path="docs/GITHUB_OPEN_SOURCE_SETUP.md" />
+    <File Path="docs/GITHUB_SECRETS_SETUP.md" />
     <File Path="docs/VERSIONING.md" />
   </Folder>
   <Folder Name="/Solution Items/">
