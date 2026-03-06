@@ -70,7 +70,11 @@
     <File Path=".github/prompts/fix-tests.prompt.md" />
     <File Path=".github/prompts/new-entity.prompt.md" />
   </Folder>
-  <Folder Name="/Solution Items/.github/workflows/" />
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/ahkflow-deploy-api.yml" />
+    <File Path=".github/workflows/ahkflow-deploy-frontend.yml" />
+    <File Path=".github/workflows/ahkflow-migrate-db.yml" />
+  </Folder>
   <Folder Name="/src/" />  
   <Folder Name="/src/Backend/">
     <Project Path="src/Backend/AHKFlow.API/AHKFlow.API.csproj" Id="686c4f51-3ba5-4ed7-90e5-205b9d49195d" />
