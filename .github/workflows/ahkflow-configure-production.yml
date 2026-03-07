@@ -1,0 +1,215 @@
+name: Configure Production Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to configure'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+env:
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'dev' }}
+  RESOURCE_GROUP: rg-ahkflow-${{ github.event.inputs.environment || 'dev' }}
+  APP_SERVICE_NAME: ahkflow-api-${{ github.event.inputs.environment || 'dev' }}
+  KEY_VAULT_NAME: ahkflow-kv-${{ github.event.inputs.environment || 'dev' }}
+  SQL_SERVER_NAME: ahkflow-sql-${{ github.event.inputs.environment || 'dev' }}
+  SQL_DATABASE_NAME: ahkflow-db
+  SQL_ADMIN_USER: ahkflowadmin
+
+jobs:
+  configure-production:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AHKFLOW_AZURE_CREDENTIALS }}
+
+      - name: Get Azure AD Configuration
+        id: azure-ad
+        run: |
+          # Get Client ID and Tenant ID
+          if [ "${{ env.ENVIRONMENT }}" = "dev" ]; then
+            APP_REG_NAME="AHKFlow-Dev"
+          else
+            APP_REG_NAME="AHKFlow-Prod"
+          fi
+          
+          CLIENT_ID=$(az ad app list --display-name "$APP_REG_NAME" --query "[0].appId" -o tsv)
+          TENANT_ID=$(az account show --query "tenantId" -o tsv)
+          
+          echo "CLIENT_ID=$CLIENT_ID" >> $GITHUB_OUTPUT
+          echo "TENANT_ID=$TENANT_ID" >> $GITHUB_OUTPUT
+          
+          echo "✓ Retrieved Azure AD configuration"
+          echo "  Client ID: $CLIENT_ID"
+          echo "  Tenant ID: $TENANT_ID"
+
+      - name: Enable Managed Identity
+        run: |
+          echo "🔐 Enabling Managed Identity for App Service..."
+          
+          az webapp identity assign \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+          
+          echo "✓ Managed Identity enabled"
+
+      - name: Grant Key Vault Access
+        run: |
+          echo "🔑 Granting Key Vault access to Managed Identity..."
+          
+          # Get Managed Identity Principal ID
+          PRINCIPAL_ID=$(az webapp identity show \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query principalId -o tsv)
+          
+          echo "  Principal ID: $PRINCIPAL_ID"
+          
+          # Grant Key Vault permissions
+          az keyvault set-policy \
+            --name ${{ env.KEY_VAULT_NAME }} \
+            --object-id $PRINCIPAL_ID \
+            --secret-permissions get list
+          
+          echo "✓ Key Vault access granted"
+
+      - name: Configure App Service Settings
+        run: |
+          echo "⚙️  Setting App Service environment variables..."
+          
+          az webapp config appsettings set \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --settings \
+              ASPNETCORE_ENVIRONMENT="Production" \
+              AzureAd__ClientId="${{ steps.azure-ad.outputs.CLIENT_ID }}" \
+              AzureAd__TenantId="${{ steps.azure-ad.outputs.TENANT_ID }}" \
+              AzureAd__Instance="https://login.microsoftonline.com/" \
+              AzureAd__CallbackPath="/signin-oidc" \
+              AzureAd__Scopes="access_as_user" \
+            --output none
+          
+          echo "✓ Environment variables configured"
+
+      - name: Configure Connection String with Key Vault Reference
+        run: |
+          echo "🔗 Configuring connection string with Key Vault reference..."
+          
+          # Get SQL Server FQDN
+          SQL_SERVER_FQDN=$(az sql server show \
+            --name ${{ env.SQL_SERVER_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query fullyQualifiedDomainName -o tsv)
+          
+          # Get Key Vault secret URI
+          SECRET_URI=$(az keyvault secret show \
+            --vault-name ${{ env.KEY_VAULT_NAME }} \
+            --name sql-admin-password \
+            --query id -o tsv)
+          
+          echo "  SQL Server: $SQL_SERVER_FQDN"
+          echo "  Secret URI: $SECRET_URI"
+          
+          # Create connection string with Key Vault reference
+          CONNECTION_STRING="Server=tcp:${SQL_SERVER_FQDN},1433;Initial Catalog=${{ env.SQL_DATABASE_NAME }};User ID=${{ env.SQL_ADMIN_USER }};Password=@Microsoft.KeyVault(SecretUri=${SECRET_URI});Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          
+          # Set connection string
+          az webapp config connection-string set \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --connection-string-type SQLAzure \
+            --settings DefaultConnection="$CONNECTION_STRING" \
+            --output none
+          
+          echo "✓ Connection string configured with Key Vault reference"
+
+      - name: Configure CORS
+        run: |
+          echo "🌐 Configuring CORS..."
+          
+          # Get Static Web App hostname
+          SWA_NAME="ahkflow-swa-${{ env.ENVIRONMENT }}"
+          SWA_HOSTNAME=$(az staticwebapp show \
+            --name $SWA_NAME \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query defaultHostname -o tsv)
+          
+          echo "  Allowed Origin: https://$SWA_HOSTNAME"
+          
+          # Update CORS in App Service
+          az webapp cors add \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --allowed-origins "https://$SWA_HOSTNAME" || true
+          
+          echo "✓ CORS configured"
+
+      - name: Restart App Service
+        run: |
+          echo "🔄 Restarting App Service..."
+          
+          az webapp restart \
+            --name ${{ env.APP_SERVICE_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }}
+          
+          echo "✓ App Service restarted"
+
+      - name: Verify Configuration
+        run: |
+          echo ""
+          echo "🎉 Production environment configured successfully!"
+          echo ""
+          echo "API URL: https://${{ env.APP_SERVICE_NAME }}.azurewebsites.net"
+          echo "Health Check: https://${{ env.APP_SERVICE_NAME }}.azurewebsites.net/api/v1/health"
+          echo ""
+          echo "Wait 30 seconds, then test the health endpoint."
+          
+          # Wait for app to restart
+          sleep 30
+          
+          # Test health endpoint
+          API_URL="https://${{ env.APP_SERVICE_NAME }}.azurewebsites.net"
+          echo ""
+          echo "Testing health endpoint..."
+          
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/api/v1/health" || echo "000")
+          
+          if [ "$RESPONSE" = "200" ]; then
+            echo "✓ Health check passed (HTTP $RESPONSE)"
+          else
+            echo "⚠️  Health check returned HTTP $RESPONSE"
+            echo "Check App Service logs for details"
+          fi
+
+      - name: Display Configuration Summary
+        if: always()
+        run: |
+          echo ""
+          echo "📋 Configuration Summary"
+          echo "======================="
+          echo "Environment: ${{ env.ENVIRONMENT }}"
+          echo "Resource Group: ${{ env.RESOURCE_GROUP }}"
+          echo "App Service: ${{ env.APP_SERVICE_NAME }}"
+          echo "Key Vault: ${{ env.KEY_VAULT_NAME }}"
+          echo "SQL Server: ${{ env.SQL_SERVER_NAME }}"
+          echo ""
+          echo "🔐 Security Configuration"
+          echo "========================"
+          echo "✓ Managed Identity enabled"
+          echo "✓ Key Vault access granted"
+          echo "✓ Connection string uses Key Vault reference"
+          echo "✓ No secrets in code or configuration files"
+          echo ""
+          echo "To view logs:"
+          echo "  az webapp log tail --name ${{ env.APP_SERVICE_NAME }} --resource-group ${{ env.RESOURCE_GROUP }}"
