@@ -420,6 +420,8 @@ FodyWeavers.xsd
 # AHKFlow - Local development settings (contain Azure AD credentials)
 **/appsettings.Development.json
 **/appsettings.Local.json
+# Production secrets - use Azure App Service Configuration instead
+**/appsettings.Production.json
 
 # AHKFlow
 **/AppData/

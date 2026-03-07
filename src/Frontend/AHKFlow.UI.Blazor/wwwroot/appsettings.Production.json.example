@@ -1,0 +1,35 @@
+{
+  "AzureAd": {
+    "ClientId": "YOUR_PRODUCTION_CLIENT_ID",
+    "Authority": "https://login.microsoftonline.com/YOUR_PRODUCTION_TENANT_ID",
+    "ValidateAuthority": true
+  },
+  "ApiHttpClient": {
+    "BaseAddress": "https://your-api.azurewebsites.net"
+  },
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.BrowserConsole" ],
+    "MinimumLevel": {
+      "Default": "Warning",
+      "Override": {
+        "Microsoft": "Warning",
+        "Microsoft.AspNetCore": "Warning",
+        "System": "Warning",
+        "AHKFlow": "Information"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "BrowserConsole",
+        "Args": {
+          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+        }
+      }
+    ],
+    "Enrich": [ "FromLogContext" ],
+    "Properties": {
+      "ApplicationName": "AHKFlow.UI.Blazor",
+      "Environment": "Production"
+    }
+  }
+}
