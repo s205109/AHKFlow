@@ -140,6 +140,14 @@ try
     }
     else
     {
+        // Enable Swagger in production (Azure)
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "AHKFlow API v1");
+            options.RoutePrefix = "swagger"; // Swagger UI at /swagger
+        });
+
         // Only use HTTPS redirection in production
         app.UseHttpsRedirection();
     }
@@ -148,6 +156,9 @@ try
     {
         app.UseCors(corsPolicyName);
     }
+
+    // Redirect root to Swagger in all environments
+    app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
     app.MapControllers();
 
