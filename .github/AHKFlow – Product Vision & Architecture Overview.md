@@ -266,8 +266,32 @@ Notes:
 
 ### 11.2 CI/CD
 
-- NUKE Build (or GitHub Actions adapter)
-- Automated build pipeline: test → package → deploy
+- GitHub Actions workflows for automated deployment
+- Automated pipeline: test → migrate database → deploy
+- Separate workflows for frontend and backend
+
+### 11.3 Configuration Management
+
+AHKFlow follows Microsoft best practices for configuration:
+
+**Frontend (Blazor WASM):**
+- `appsettings.json` committed to git with production values (public, client-side, no secrets)
+- Contains: Client ID, API URLs, public endpoints
+- Local development overridden by `appsettings.Development.json` (ignored by git)
+- Deployed automatically with Static Web Apps
+
+**Backend (API):**
+- `appsettings.Production.json` ignored by git (contains secrets)
+- Template: `appsettings.Production.json.example` (safe to commit)
+- Secrets managed via Azure App Service Configuration + Key Vault
+- CI/CD workflow sets environment variables in Azure
+
+**Rationale:**
+- Blazor WASM runs in browser → all config is visible to users → secrets impossible
+- OAuth Client ID is public by design (OAuth 2.0 specification)
+- Backend secrets stored securely in Azure (App Service Config + Key Vault)
+
+See: [Configuration Strategy](docs/CONFIGURATION_STRATEGY.md)
 
 ---
 

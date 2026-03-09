@@ -239,6 +239,24 @@ builder.Services.AddHttpClient<MyApiService>(client =>
 
 ## CI/CD and Deployment
 
+### Configuration Management
+
+AHKFlow follows Microsoft best practices for configuration management:
+
+**Frontend (Blazor WASM):**
+- `appsettings.json` is **committed to git** with production values (public, client-side, no secrets)
+- Contains: Client ID, API URLs, public endpoints
+- Local development: `appsettings.Development.json` overrides with `localhost:7600` (ignored by git)
+- Deployed automatically with Static Web Apps
+
+**Backend (API):**
+- `appsettings.Production.json` is **ignored by git** (contains secrets)
+- Template: `appsettings.Production.json.example` (safe to commit)
+- Secrets managed via Azure App Service Configuration + Key Vault
+- CI/CD workflow sets environment variables in Azure
+
+See: [Configuration Strategy](docs/CONFIGURATION_STRATEGY.md)
+
 ### Branching Strategy: GitHub Flow
 
 This repository uses the GitHub Flow branching model. Work from short-lived branches and merge into `main` via pull requests.
