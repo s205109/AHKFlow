@@ -286,7 +286,9 @@ else
       echo ""
       echo "Or run this command:"
       echo "  USER_ID=\$(az ad signed-in-user show --query id -o tsv)"
-      echo "  az role assignment create --role \"Key Vault Secrets Officer\" --assignee \"\$USER_ID\" --scope \"$KEY_VAULT_SCOPE\""
+      echo "  $USER_ID"
+      #echo "  az role assignment create --role \"Key Vault Secrets Officer\" --assignee \"\$USER_ID\" --scope \"$KEY_VAULT_SCOPE\""
+      echo "  az role assignment create --role \"Key Vault Secrets Officer\" --assignee \"\$USER_ID\" --scope \"${KEY_VAULT_SCOPE#\\}\""
     else
       echo "✓ Found Key Vault role: $KEY_VAULT_ROLE"
     fi
@@ -343,7 +345,7 @@ else
           echo ""
           echo "Option 2 - Azure CLI (if you have permissions):"
           echo "  USER_ID=\$(az ad signed-in-user show --query id -o tsv)"
-          echo "  az role assignment create --role \"Key Vault Secrets Officer\" --assignee \"\$USER_ID\" --scope \"$KEY_VAULT_SCOPE\""
+          echo "  az role assignment create --role \"Key Vault Secrets Officer\" --assignee \"\$USER_ID\" --scope \"${KEY_VAULT_SCOPE#/}\""
           echo ""
           echo -n "After assigning the role, press Enter to continue..."
           read
