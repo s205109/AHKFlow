@@ -13,6 +13,34 @@ Retrieve Azure credentials and configure GitHub secrets for CI/CD workflows.
 
 ---
 
+## Required GitHub Secrets for CI/CD
+
+The CI/CD workflows require these secrets to be configured in GitHub:
+
+### Core Secrets
+
+| Secret Name | Description | How to Get |
+|-------------|-------------|------------|
+| `AHKFLOW_AZURE_CREDENTIALS` | Service Principal JSON for Azure login | See [Section 2](#2-service-principal-ahkflow_azure_credentials) |
+| `AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN` | Static Web Apps deployment token | See [Section 3](#3-static-web-apps-token-ahkflow_azure_static_web_apps_api_token) |
+| `AHKFLOW_SQL_MIGRATION_CONNECTION_STRING` | SQL connection string for migrations | See [Section 4](#4-sql-connection-string-ahkflow_sql_migration_connection_string) |
+| `AZURE_AD_CLIENT_ID` | Azure AD App Registration Client ID | See [Section 5](#5-azure-ad-configuration-azure_ad_client_id--azure_ad_tenant_id) |
+| `AZURE_AD_TENANT_ID` | Azure AD Tenant ID | See [Section 5](#5-azure-ad-configuration-azure_ad_client_id--azure_ad_tenant_id) |
+
+### Optional Secrets
+
+| Secret Name | Description | When Needed |
+|-------------|-------------|-------------|
+| `KEY_VAULT_SECRET_URI` | Key Vault secret URI for SQL password | For Key Vault integration (recommended for production) |
+
+### Where to Add Secrets
+
+Go to: **https://github.com/s205109/AHKFlow/settings/secrets/actions**
+
+Click **"New repository secret"** and add each secret name and value.
+
+---
+
 ## Variables
 
 Set these once at the start:
@@ -403,17 +431,114 @@ if ([string]::IsNullOrEmpty($SQL_CONNECTION_STRING)) {
 }
 ```
 
+### 5. Azure AD Configuration (`AZURE_AD_CLIENT_ID` & `AZURE_AD_TENANT_ID`)
+
+#### Option A: Bash
+
+```bash
+# Step 5.1: Display and validate required variables
+echo "=== Step 5: Azure AD Configuration ==="
+echo "Required variables:"
+echo "  GITHUB_REPO: ${GITHUB_REPO:-NOT SET}"
+echo ""
+
+if [ -z "$GITHUB_REPO" ]; then
+  echo "❌ Error: GITHUB_REPO not set"
+  echo "Please run the 'Variables' section first"
+  exit 1
+fi
+
+# Step 5.2: Get Client ID
+echo "Retrieving Azure AD Client ID..."
+CLIENT_ID=$(az ad app list --display-name "AHKFlow-Dev" --query "[0].appId" -o tsv)
+
+if [ -z "$CLIENT_ID" ]; then
+  echo "❌ Error: Could not find AHKFlow-Dev app registration"
+  echo "Verify the app registration exists: az ad app list --query \"[].displayName\" -o tsv"
+  exit 1
+fi
+
+echo "Client ID: $CLIENT_ID"
+
+# Step 5.3: Set GitHub secret for Client ID
+echo "$CLIENT_ID" | gh secret set AZURE_AD_CLIENT_ID --repo $GITHUB_REPO
+echo "✓ Set AZURE_AD_CLIENT_ID"
+
+# Step 5.4: Get Tenant ID
+echo "Retrieving Tenant ID..."
+TENANT_ID=$(az account show --query "tenantId" -o tsv)
+
+if [ -z "$TENANT_ID" ]; then
+  echo "❌ Error: Could not retrieve Tenant ID"
+  exit 1
+fi
+
+echo "Tenant ID: $TENANT_ID"
+
+# Step 5.5: Set GitHub secret for Tenant ID
+echo "$TENANT_ID" | gh secret set AZURE_AD_TENANT_ID --repo $GITHUB_REPO
+echo "✓ Set AZURE_AD_TENANT_ID"
+```
+
+#### Option B: PowerShell (Recommended for Windows)
+
+```powershell
+# Step 5.1: Display and validate required variables
+Write-Host "=== Step 5: Azure AD Configuration ==="
+Write-Host "Required variables:"
+Write-Host "  GITHUB_REPO: $GITHUB_REPO"
+Write-Host ""
+
+if ([string]::IsNullOrEmpty($GITHUB_REPO)) {
+    Write-Host "❌ Error: GITHUB_REPO not set" -ForegroundColor Red
+    Write-Host "Please run the 'Variables' section first"
+    exit 1
+}
+
+# Step 5.2: Get Client ID
+Write-Host "Retrieving Azure AD Client ID..."
+$CLIENT_ID = az ad app list --display-name "AHKFlow-Dev" --query "[0].appId" -o tsv
+
+if ([string]::IsNullOrEmpty($CLIENT_ID)) {
+    Write-Host "❌ Error: Could not find AHKFlow-Dev app registration" -ForegroundColor Red
+    Write-Host "Verify the app registration exists: az ad app list --query `"[].displayName`" -o tsv"
+    exit 1
+}
+
+Write-Host "Client ID: $CLIENT_ID"
+
+# Step 5.3: Set GitHub secret for Client ID
+$CLIENT_ID | gh secret set AZURE_AD_CLIENT_ID --repo $GITHUB_REPO
+Write-Host "✓ Set AZURE_AD_CLIENT_ID"
+
+# Step 5.4: Get Tenant ID
+Write-Host "Retrieving Tenant ID..."
+$TENANT_ID = az account show --query "tenantId" -o tsv
+
+if ([string]::IsNullOrEmpty($TENANT_ID)) {
+    Write-Host "❌ Error: Could not retrieve Tenant ID" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Tenant ID: $TENANT_ID"
+
+# Step 5.5: Set GitHub secret for Tenant ID
+$TENANT_ID | gh secret set AZURE_AD_TENANT_ID --repo $GITHUB_REPO
+Write-Host "✓ Set AZURE_AD_TENANT_ID"
+```
+
 ---
 
 ## Verify Secrets
 
 ```bash
-
 gh secret list --repo $GITHUB_REPO
 # Expected output:
 # AHKFLOW_AZURE_CREDENTIALS
 # AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN
 # AHKFLOW_SQL_MIGRATION_CONNECTION_STRING
+# AZURE_AD_CLIENT_ID
+# AZURE_AD_TENANT_ID
 ```
 
 ---
@@ -457,6 +582,24 @@ gh secret set AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN --repo $GITHUB_REPO
 
 # Paste when prompted
 gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo $GITHUB_REPO
+```
+
+### Azure AD Configuration
+
+```bash
+# Get Client ID
+az ad app list --display-name "AHKFlow-Dev" --query "[0].appId" -o tsv
+
+# Copy output and set secret
+gh secret set AZURE_AD_CLIENT_ID --repo $GITHUB_REPO
+```
+
+```bash
+# Get Tenant ID
+az account show --query "tenantId" -o tsv
+
+# Copy output and set secret
+gh secret set AZURE_AD_TENANT_ID --repo $GITHUB_REPO
 ```
 
 ---
@@ -588,6 +731,83 @@ Retrieve from Azure Portal or Key Vault, or construct manually:
 ```bash
 Server=tcp:<server-name>.database.windows.net,1433;Initial Catalog=<db-name>;User ID=<admin-user>;Password=<password>;Encrypt=True;
 ```
+
+---
+
+## Manual Azure Configuration (One-Time Setup)
+
+### Grant Key Vault Access to App Service Managed Identity
+
+The CI/CD workflow requires the App Service Managed Identity to have access to Key Vault secrets. This must be done once manually.
+
+#### PowerShell (Windows - Recommended)
+
+```powershell
+# Step 1: Get the Managed Identity Principal ID
+$PRINCIPAL_ID = az webapp identity show `
+  --name ahkflow-api-dev `
+  --resource-group rg-ahkflow-dev `
+  --query principalId `
+  --output tsv
+
+Write-Host "Principal ID: $PRINCIPAL_ID"
+
+# Step 2: Get Subscription ID
+$SUBSCRIPTION_ID = az account show --query id --output tsv
+
+# Step 3: Grant Key Vault access
+az role assignment create `
+  --role "Key Vault Secrets User" `
+  --assignee-object-id $PRINCIPAL_ID `
+  --assignee-principal-type ServicePrincipal `
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/rg-ahkflow-dev/providers/Microsoft.KeyVault/vaults/ahkflow-kv-dev"
+
+Write-Host "✓ Granted Key Vault access to App Service Managed Identity"
+```
+
+#### Bash (Linux / macOS / WSL)
+
+```bash
+# Step 1: Get the Managed Identity Principal ID
+PRINCIPAL_ID=$(az webapp identity show \
+  --name ahkflow-api-dev \
+  --resource-group rg-ahkflow-dev \
+  --query principalId \
+  --output tsv)
+
+echo "Principal ID: $PRINCIPAL_ID"
+
+# Step 2: Get Subscription ID
+SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+
+# Step 3: Grant Key Vault access
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --assignee-object-id $PRINCIPAL_ID \
+  --assignee-principal-type ServicePrincipal \
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/rg-ahkflow-dev/providers/Microsoft.KeyVault/vaults/ahkflow-kv-dev"
+
+echo "✓ Granted Key Vault access to App Service Managed Identity"
+```
+
+#### Azure Portal Method (Alternative)
+
+If CLI commands fail, use Azure Portal:
+
+1. **Get Principal ID:**
+   - Go to: https://portal.azure.com
+   - Search for `ahkflow-api-dev`
+   - Click **Identity** → **System assigned**
+   - Copy the **Object (principal) ID**
+
+2. **Grant Key Vault Access:**
+   - Go to Key Vault: `ahkflow-kv-dev`
+   - Click **Access control (IAM)**
+   - Click **+ Add** → **Add role assignment**
+   - Select role: **Key Vault Secrets User**
+   - Click **Next** → **+ Select members**
+   - Search for: `ahkflow-api-dev`
+   - Select it → Click **Review + assign**
 
 ---
 
