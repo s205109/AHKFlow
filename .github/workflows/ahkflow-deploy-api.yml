@@ -165,6 +165,7 @@ jobs:
                 AzureAd__Instance="https://login.microsoftonline.com/" \
                 AzureAd__CallbackPath="/signin-oidc" \
                 AzureAd__Scopes="access_as_user" \
+                Cors__AllowedOrigins__0="https://white-island-04c4b8103.1.azurestaticapps.net" \
               --output none 2>/dev/null || echo "⚠️  Environment variables update skipped (may require manual setup)"
 
             echo "✓ Environment variables configuration attempted"
