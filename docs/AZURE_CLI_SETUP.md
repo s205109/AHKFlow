@@ -626,6 +626,83 @@ else
     fi
   fi
 
+  # Step 9.2a: Enable Managed Identity (if not already enabled)
+  if az webapp show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
+    echo ""
+    echo "=== Step 9.2a: Configuring Managed Identity ==="
+
+    PRINCIPAL_ID=$(az webapp identity show \
+      --name $APP_SERVICE_NAME \
+      --resource-group $RESOURCE_GROUP \
+      --query principalId -o tsv 2>/dev/null)
+
+    if [ -z "$PRINCIPAL_ID" ] || [ "$PRINCIPAL_ID" = "None" ]; then
+      echo "Enabling Managed Identity..."
+      az webapp identity assign \
+        --name $APP_SERVICE_NAME \
+        --resource-group $RESOURCE_GROUP \
+        >/dev/null
+
+      PRINCIPAL_ID=$(az webapp identity show \
+        --name $APP_SERVICE_NAME \
+        --resource-group $RESOURCE_GROUP \
+        --query principalId -o tsv)
+
+      echo "✓ Managed Identity enabled: $PRINCIPAL_ID"
+
+      # Wait for Managed Identity to propagate to Azure AD
+      echo "Waiting for Managed Identity to propagate to Azure AD (30 seconds)..."
+      sleep 30
+    else
+      echo "✓ Managed Identity already enabled: $PRINCIPAL_ID"
+    fi
+
+    # Step 9.2b: Grant Key Vault access to Managed Identity
+    echo ""
+    echo "=== Step 9.2b: Granting Key Vault Access ==="
+    KEY_VAULT_NAME="ahkflow-kv-${ENVIRONMENT}"
+
+    KV_SCOPE=$(az keyvault show \
+      --name $KEY_VAULT_NAME \
+      --resource-group $RESOURCE_GROUP \
+      --query id -o tsv 2>/dev/null)
+
+    if [ -n "$KV_SCOPE" ]; then
+      # Check if role assignment already exists
+      EXISTING_ROLE=$(az role assignment list \
+        --assignee "$PRINCIPAL_ID" \
+        --scope "$KV_SCOPE" \
+        --query "[?roleDefinitionName=='Key Vault Secrets User'].roleDefinitionName | [0]" \
+        -o tsv 2>/dev/null)
+
+      if [ -z "$EXISTING_ROLE" ]; then
+        echo "Assigning 'Key Vault Secrets User' role to Managed Identity..."
+
+        # Use --assignee-object-id with --assignee-principal-type for newly created identities
+        if az role assignment create \
+          --role "Key Vault Secrets User" \
+          --assignee-object-id "$PRINCIPAL_ID" \
+          --assignee-principal-type ServicePrincipal \
+          --scope "$KV_SCOPE" \
+          2>/dev/null; then
+          echo "✓ Granted Key Vault access to App Service"
+        else
+          echo "⚠️  Failed to grant Key Vault access automatically"
+          echo "This may be due to insufficient permissions or propagation delay."
+          echo ""
+          echo "To grant access manually, wait 1-2 minutes and run:"
+          echo "  az role assignment create --role \"Key Vault Secrets User\" --assignee-object-id \"$PRINCIPAL_ID\" --assignee-principal-type ServicePrincipal --scope \"${KV_SCOPE#/}\""
+        fi
+      else
+        echo "✓ Key Vault access already granted"
+      fi
+    else
+      echo "⚠️  Key Vault not found. Skipping Key Vault access setup."
+      echo "Run Section 5 first to create the Key Vault, then manually grant access:"
+      echo "  az role assignment create --role \"Key Vault Secrets User\" --assignee-object-id \"$PRINCIPAL_ID\" --assignee-principal-type ServicePrincipal --scope \"\$(az keyvault show --name ahkflow-kv-${ENVIRONMENT} --resource-group $RESOURCE_GROUP --query id -o tsv)\""
+    fi
+  fi
+
   # Step 9.3: Configure connection string (only if App Service exists)
   if az webapp show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     # Retrieve password from Key Vault if not already in session
