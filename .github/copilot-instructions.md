@@ -338,11 +338,24 @@ Branch protection
   - Azure Static Web Apps
   - Application Insights (optional, for monitoring)
 
-### Deployment Secrets (GitHub)
+### Deployment Secrets (GitHub) — **PREFERRED APPROACH**
 
-- `AHKFLOW_AZURE_CREDENTIALS` - Service principal JSON for Azure login
-- `AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN` - Static Web Apps deployment token
-- `AHKFLOW_SQL_MIGRATION_CONNECTION_STRING` - Azure SQL connection string for migrations
+**Why GitHub Secrets instead of Azure AD/Key Vault in workflows?**
+- ✅ **Simpler**: No additional Graph API permissions or Key Vault setup required
+- ✅ **Faster**: Secrets available directly in workflow environment without additional Azure calls
+- ✅ **Safer**: Encrypted at rest; only decrypted into workflow logs
+- ✅ **Maintainable**: All deployment secrets managed in one place (Settings > Secrets and variables > Actions)
+- ❌ **Avoid**: Azure AD service principals in workflows (unnecessary permissions), Key Vault references (added complexity)
+
+
+**Best Practices:**
+- ✅ Use GitHub Secrets for **all** sensitive values in workflows
+- ✅ Reference secrets only in `.github/workflows/*.yml` files using `${{ secrets.NAME }}`
+- ✅ Never commit actual secrets to git (always use `.gitignore`)
+- ✅ Rotate secrets periodically across GitHub and Azure
+- ❌ **Don't** reference Azure Key Vault in workflows (unnecessary indirection)
+- ❌ **Don't** use Azure AD Graph API calls to retrieve secrets in workflows
+- ❌ **Don't** hardcode sensitive values in YAML files
 
 ## Out of Scope
 
