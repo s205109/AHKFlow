@@ -403,13 +403,113 @@ else
 fi
 ```
 
-### 6. Azure SQL Server
+### 6. Application Insights (Optional)
+
+**Recommended:** Single Application Insights resource for both frontend and backend. See `.github/docs/ARCHITECTURE_APPLICATION_INSIGHTS.md` for details.
+
+**Why Log Analytics Workspace?** Modern Application Insights (workspace-based) requires a Log Analytics workspace for better retention (90 days vs 30 days classic), unified query experience, and better cost management. Classic mode is being deprecated.
+
+```bash
+# Step 6.1: Display and validate required variables
+echo "=== Section 6: Application Insights (Optional) ==="
+echo "Required variables:"
+echo "  RESOURCE_GROUP: ${RESOURCE_GROUP:-NOT SET}"
+echo "  LOCATION: ${LOCATION:-NOT SET}"
+echo "  ENVIRONMENT: ${ENVIRONMENT:-NOT SET}"
+echo ""
+
+if [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ] || [ -z "$ENVIRONMENT" ]; then
+  echo "❌ Error: Required variables not set"
+  echo "Please run the 'Variables' section first to set all required variables"
+else
+  APP_INSIGHTS_NAME="ahkflow-insights-${ENVIRONMENT}"
+  LOG_ANALYTICS_WORKSPACE_NAME="ahkflow-logs-${ENVIRONMENT}"
+
+  echo "App Insights Name: $APP_INSIGHTS_NAME"
+  echo "Log Analytics Workspace: $LOG_ANALYTICS_WORKSPACE_NAME"
+  echo ""
+
+  # Step 6.2: Create Log Analytics Workspace (required for workspace-based App Insights)
+  if az monitor log-analytics workspace show --resource-group $RESOURCE_GROUP --workspace-name $LOG_ANALYTICS_WORKSPACE_NAME &>/dev/null; then
+    echo "✓ Log Analytics Workspace exists"
+  else
+    echo "Creating Log Analytics Workspace..."
+    az monitor log-analytics workspace create \
+      --resource-group $RESOURCE_GROUP \
+      --workspace-name $LOG_ANALYTICS_WORKSPACE_NAME \
+      --location $LOCATION \
+      >/dev/null
+
+    echo "✓ Created Log Analytics Workspace"
+  fi
+
+  # Step 6.3: Get workspace resource ID
+  WORKSPACE_ID=$(az monitor log-analytics workspace show \
+    --resource-group $RESOURCE_GROUP \
+    --workspace-name $LOG_ANALYTICS_WORKSPACE_NAME \
+    --query id -o tsv)
+
+  # Step 6.4: Create Application Insights (workspace-based)
+  if az monitor app-insights component show --app $APP_INSIGHTS_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
+    echo "✓ Application Insights exists"
+  else
+    echo "Creating Application Insights..."
+
+    # Fix for Git Bash path translation issue: Prevent /subscriptions/... from being converted to C:/Program Files/Git/subscriptions/...
+    MSYS_NO_PATHCONV=1 az monitor app-insights component create \
+      --app $APP_INSIGHTS_NAME \
+      --location $LOCATION \
+      --resource-group $RESOURCE_GROUP \
+      --application-type web \
+      --workspace "$WORKSPACE_ID" \
+      2>&1 | tee /tmp/appinsights-create.log
+
+    # Check if creation was successful
+    if az monitor app-insights component show --app $APP_INSIGHTS_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
+      echo "✓ Created Application Insights (workspace-based)"
+    else
+      echo "❌ Failed to create Application Insights"
+      echo ""
+      echo "Common fixes:"
+      echo "1. If using Git Bash on Windows, the script already uses MSYS_NO_PATHCONV=1"
+      echo "2. If still failing, try running in PowerShell or CMD instead of Git Bash"
+      echo "3. Check if workspace-based App Insights is available in your region:"
+      echo "   az feature show --namespace microsoft.insights --name AIWorkspacePreview"
+      echo ""
+      exit 1
+    fi
+  fi
+
+  # Step 6.5: Get connection string
+  APP_INSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show \
+    --app $APP_INSIGHTS_NAME \
+    --resource-group $RESOURCE_GROUP \
+    --query connectionString -o tsv)
+
+  echo ""
+  echo "✅ Application Insights Connection String:"
+  echo "$APP_INSIGHTS_CONNECTION_STRING"
+  echo ""
+  echo "📋 Next Steps:"
+  echo "1. Update frontend: src/Frontend/AHKFlow.UI.Blazor/wwwroot/appsettings.json"
+  echo "2. Update backend: src/Backend/AHKFlow.API/appsettings.Production.json"
+  echo ""
+  echo "Add this configuration:"
+  echo '  "ApplicationInsights": {'
+  echo '    "ConnectionString": "<paste-connection-string-above>"'
+  echo '  }'
+  echo ""
+  echo "See .github/docs/ARCHITECTURE_APPLICATION_INSIGHTS.md for implementation details"
+fi
+```
+
+### 7. Azure SQL Server
 
 **⚠️ Important:** Run Section 5 (Key Vault) first before running this section.
 
 ```bash
-# Step 6.1: Display and validate required variables
-echo "=== Section 6: Azure SQL Server ==="
+# Step 7.1: Display and validate required variables
+echo "=== Section 7: Azure SQL Server ==="
 echo "Required variables:"
 echo "  SQL_SERVER_NAME: ${SQL_SERVER_NAME:-NOT SET}"
 echo "  RESOURCE_GROUP: ${RESOURCE_GROUP:-NOT SET}"
@@ -422,7 +522,7 @@ if [ -z "$SQL_SERVER_NAME" ] || [ -z "$RESOURCE_GROUP" ] || [ -z "$LOCATION" ] |
   echo "❌ Error: Required variables not set"
   echo "Please run the 'Variables' section first to set all required variables"
 else
-  # Step 6.2: Check if SQL Server exists
+  # Step 7.2: Check if SQL Server exists
   if az sql server show --name $SQL_SERVER_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     echo "✓ SQL Server exists"
 
@@ -437,10 +537,10 @@ else
       echo "✓ Retrieved SQL password from Key Vault"
     fi
   else
-    # Step 6.3: Generate secure password
+    # Step 7.3: Generate secure password
     SQL_ADMIN_PASSWORD=$(openssl rand -base64 32 2>/dev/null || powershell -Command "Add-Type -AssemblyName System.Web; [System.Web.Security.Membership]::GeneratePassword(32,10)")
 
-    # Step 6.4: Create SQL Server
+    # Step 7.4: Create SQL Server
     echo "Creating SQL Server..."
     if az sql server create \
       --name $SQL_SERVER_NAME \
@@ -451,7 +551,7 @@ else
 
       echo "✓ Created SQL Server"
 
-      # Step 6.5: Store password in Key Vault
+      # Step 7.5: Store password in Key Vault
       echo "Storing password in Key Vault..."
       if az keyvault secret set \
         --vault-name $KEY_VAULT_NAME \
@@ -484,7 +584,7 @@ else
     fi
   fi
 
-  # Step 6.6: Configure firewall rules (only if SQL Server exists)
+  # Step 7.6: Configure firewall rules (only if SQL Server exists)
   if az sql server show --name $SQL_SERVER_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     az sql server firewall-rule create \
       --resource-group $RESOURCE_GROUP \
@@ -510,11 +610,11 @@ else
 fi
 ```
 
-### 7. Azure SQL Database
+### 8. Azure SQL Database
 
 ```bash
-# Step 7.1: Display and validate required variables
-echo "=== Section 7: Azure SQL Database ==="
+# Step 8.1: Display and validate required variables
+echo "=== Section 8: Azure SQL Database ==="
 echo "Required variables:"
 echo "  SQL_DATABASE_NAME: ${SQL_DATABASE_NAME:-NOT SET}"
 echo "  SQL_SERVER_NAME: ${SQL_SERVER_NAME:-NOT SET}"
@@ -525,7 +625,7 @@ if [ -z "$SQL_DATABASE_NAME" ] || [ -z "$SQL_SERVER_NAME" ] || [ -z "$RESOURCE_G
   echo "❌ Error: Required variables not set"
   echo "Please run the 'Variables' section first to set all required variables"
 else
-  # Step 7.2: Create or verify SQL Database
+  # Step 8.2: Create or verify SQL Database
   if az sql db show --name $SQL_DATABASE_NAME --server $SQL_SERVER_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     echo "✓ SQL Database exists"
   else
@@ -548,11 +648,11 @@ else
 fi
 ```
 
-### 8. Azure App Service Plan
+### 9. Azure App Service Plan
 
 ```bash
-# Step 8.1: Display and validate required variables
-echo "=== Section 8: Azure App Service Plan ==="
+# Step 9.1: Display and validate required variables
+echo "=== Section 9: Azure App Service Plan ==="
 echo "Required variables:"
 echo "  RESOURCE_GROUP: ${RESOURCE_GROUP:-NOT SET}"
 echo "  LOCATION: ${LOCATION:-NOT SET}"
@@ -567,7 +667,7 @@ else
   echo "App Service Plan Name: $APP_SERVICE_PLAN_NAME"
   echo ""
 
-  # Step 8.2: Create or verify App Service Plan
+  # Step 9.2: Create or verify App Service Plan
   if az appservice plan show --name $APP_SERVICE_PLAN_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     echo "✓ App Service Plan exists"
   else
@@ -582,11 +682,11 @@ else
 fi
 ```
 
-### 9. Azure App Service (API Backend)
+### 10. Azure App Service (API Backend)
 
 ```bash
-# Step 9.1: Display and validate required variables
-echo "=== Section 9: Azure App Service (API Backend) ==="
+# Step 10.1: Display and validate required variables
+echo "=== Section 10: Azure App Service (API Backend) ==="
 echo "Required variables:"
 echo "  APP_SERVICE_NAME: ${APP_SERVICE_NAME:-NOT SET}"
 echo "  RESOURCE_GROUP: ${RESOURCE_GROUP:-NOT SET}"
@@ -600,14 +700,14 @@ else
   # Ensure plan name is set (in case running this section independently)
   APP_SERVICE_PLAN_NAME="ahkflow-plan-${ENVIRONMENT}"
 
-  # Step 9.2: Create or verify App Service
+  # Step 10.2: Create or verify App Service
   if az webapp show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     echo "✓ App Service exists"
   else
     # Verify the App Service Plan exists first
     if ! az appservice plan show --name $APP_SERVICE_PLAN_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
       echo "❌ Error: App Service Plan '$APP_SERVICE_PLAN_NAME' not found."
-      echo "⚠️  Please run Section 8 first to create the App Service Plan."
+      echo "⚠️  Please run Section 9 first to create the App Service Plan."
       echo ""
       echo "Skipping App Service creation..."
     else
@@ -626,10 +726,10 @@ else
     fi
   fi
 
-  # Step 9.2a: Enable Managed Identity (if not already enabled)
+  # Step 10.2a: Enable Managed Identity (if not already enabled)
   if az webapp show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     echo ""
-    echo "=== Step 9.2a: Configuring Managed Identity ==="
+    echo "=== Step 10.2a: Configuring Managed Identity ==="
 
     PRINCIPAL_ID=$(az webapp identity show \
       --name $APP_SERVICE_NAME \
@@ -657,9 +757,9 @@ else
       echo "✓ Managed Identity already enabled: $PRINCIPAL_ID"
     fi
 
-    # Step 9.2b: Grant Key Vault access to Managed Identity
+    # Step 10.2b: Grant Key Vault access to Managed Identity
     echo ""
-    echo "=== Step 9.2b: Granting Key Vault Access ==="
+    echo "=== Step 10.2b: Granting Key Vault Access ==="
     KEY_VAULT_NAME="ahkflow-kv-${ENVIRONMENT}"
 
     KV_SCOPE=$(az keyvault show \
@@ -703,7 +803,7 @@ else
     fi
   fi
 
-  # Step 9.3: Configure connection string (only if App Service exists)
+  # Step 10.3: Configure connection string (only if App Service exists)
   if az webapp show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP &>/dev/null; then
     # Retrieve password from Key Vault if not already in session
     if [ -z "$SQL_ADMIN_PASSWORD" ]; then
@@ -782,11 +882,19 @@ APP_SERVICE_URL=$(az webapp show --name $APP_SERVICE_NAME --resource-group $RESO
 # SQL Server
 SQL_SERVER_FQDN=$(az sql server show --name $SQL_SERVER_NAME --resource-group $RESOURCE_GROUP --query "fullyQualifiedDomainName" -o tsv)
 
+# Application Insights (optional)
+APP_INSIGHTS_NAME="ahkflow-insights-${ENVIRONMENT}"
+APP_INSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show --app $APP_INSIGHTS_NAME --resource-group $RESOURCE_GROUP --query "connectionString" -o tsv 2>/dev/null)
+
 echo "CLIENT_ID: $CLIENT_ID"
 echo "TENANT_ID: $TENANT_ID"
 echo "SWA URL: https://$SWA_HOSTNAME"
 echo "API URL: https://$APP_SERVICE_URL"
 echo "SQL Server: $SQL_SERVER_FQDN"
+
+if [ -n "$APP_INSIGHTS_CONNECTION_STRING" ]; then
+  echo "App Insights Connection String: $APP_INSIGHTS_CONNECTION_STRING"
+fi
 ```
 
 ---
@@ -918,10 +1026,11 @@ This setup creates all Azure resources needed for AHKFlow:
 3. **App Registration** - Microsoft Entra ID authentication (Free)
 4. **API Scope** - OAuth2 permission for API access (Free)
 5. **Azure Key Vault** - Stores secrets securely (Free tier - 10,000 operations/month)
-6. **Azure SQL Server** - Database server with firewall rules (Free)
-7. **Azure SQL Database** - ahkflow-db database (**Free tier - 32 GB**)
-8. **App Service Plan** - Hosting plan for API (**F1 Free tier**)
-9. **App Service** - Hosts .NET 10 API backend (Free tier)
+6. **Application Insights** - Unified monitoring for frontend + backend (**Optional**, Free tier - 5 GB/month)
+7. **Azure SQL Server** - Database server with firewall rules (Free)
+8. **Azure SQL Database** - ahkflow-db database (**Free tier - 32 GB**)
+9. **App Service Plan** - Hosting plan for API (**F1 Free tier**)
+10. **App Service** - Hosts .NET 10 API backend (Free tier)
 
 ### Cost Breakdown
 
@@ -935,6 +1044,7 @@ This setup creates all Azure resources needed for AHKFlow:
 | SQL Server | - | €0 |
 | SQL Database | Free (32 GB) | €0 |
 | App Registration | - | €0 |
+| Application Insights | Free (5 GB) | €0 |
 
 ### Free Tier Limitations
 
@@ -949,9 +1059,15 @@ This setup creates all Azure resources needed for AHKFlow:
 - Auto-pauses when idle
 - 1 free database per subscription
 
+**Application Insights Free:**
+- 5 GB data ingestion/month
+- 90 days retention
+- Additional ingestion: ~€2/GB
+
 ### Key Concepts
 
 - **API Scope** (Section 4) = Authentication permission (OAuth2) for frontend to call API
-- **App Service** (Section 8) = Actual hosting infrastructure where your .NET API code runs
+- **App Service** (Section 10) = Actual hosting infrastructure where your .NET API code runs
+- **Application Insights** (Section 6) = Optional unified monitoring for frontend + backend (see `.github/docs/ARCHITECTURE_APPLICATION_INSIGHTS.md`)
 
-Both are needed for a complete working deployment!
+Both API Scope and App Service are needed for a complete working deployment!
