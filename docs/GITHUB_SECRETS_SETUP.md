@@ -850,59 +850,93 @@ The value's length for key 'Password' exceeds its limit of '128'
 #### Bash
 
 ```bash
-# Generate new 24-character password
-NEW_PASSWORD=$(openssl rand -base64 18 | tr -d "=+/" | cut -c1-24)
+# Generate new 24-character password with complexity requirements
+# SQL Server requires: uppercase, lowercase, numbers, AND special characters
+NEW_PASSWORD=$(openssl rand -base64 16 | tr -d "=/" | head -c 20; echo -n '!@#$')
 echo "Password length: ${#NEW_PASSWORD}"
 
-# Update Key Vault
+# Step 1: Update SQL Server admin password
+az sql server update \
+  --name ahkflow-sql-dev \
+  --resource-group rg-ahkflow-dev \
+  --admin-password "$NEW_PASSWORD"
+
+echo "✓ Updated SQL Server admin password"
+
+# Step 2: Update Key Vault
 az keyvault secret set \
   --vault-name ahkflow-kv-dev \
   --name sql-admin-password \
   --value "$NEW_PASSWORD"
 
-# Construct connection string
+echo "✓ Updated Key Vault secret"
+
+# Step 3: Construct connection string
 SQL_CONNECTION_STRING="Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 
-# Update App Service
+# Step 4: Update App Service
 az webapp config connection-string set \
   --name ahkflow-api-dev \
   --resource-group rg-ahkflow-dev \
   --connection-string-type SQLAzure \
   --settings DefaultConnection="$SQL_CONNECTION_STRING"
 
-# Update GitHub secret
+echo "✓ Updated App Service connection string"
+
+# Step 5: Update GitHub secret
 echo "$SQL_CONNECTION_STRING" | gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo s205109/AHKFlow
 
-echo "✓ Updated password (24 characters)"
+echo ""
+echo "✓ Updated password (24 characters with complexity) across all systems"
 ```
 
 #### PowerShell
 
 ```powershell
-# Generate new 24-character password
-$NEW_PASSWORD = -join ((65..90) + (97..122) + (48..57) + @(33,35,36,37,38,42,43,45,61,63,64) | Get-Random -Count 24 | ForEach-Object {[char]$_})
+# Generate new 24-character password with complexity requirements
+# SQL Server requires: uppercase, lowercase, numbers, AND special characters
+# Method: 16 mixed + 4 uppercase + 2 numbers + 2 special, then shuffle
+$upperChars = -join ((65..90) | Get-Random -Count 4 | ForEach-Object {[char]$_})
+$lowerChars = -join ((97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_})
+$numbers = -join ((48..57) | Get-Random -Count 6 | ForEach-Object {[char]$_})
+$specialChars = -join (@(33,35,36,37,64) | Get-Random -Count 4 | ForEach-Object {[char]$_})  # !#$%@
+$NEW_PASSWORD = -join (($upperChars + $lowerChars + $numbers + $specialChars).ToCharArray() | Get-Random -Count 24)
+
 Write-Host "Password length: $($NEW_PASSWORD.Length)"
 
-# Update Key Vault
+# Step 1: Update SQL Server admin password
+az sql server update `
+  --name ahkflow-sql-dev `
+  --resource-group rg-ahkflow-dev `
+  --admin-password "$NEW_PASSWORD"
+
+Write-Host "✓ Updated SQL Server admin password"
+
+# Step 2: Update Key Vault
 az keyvault secret set `
   --vault-name ahkflow-kv-dev `
   --name sql-admin-password `
   --value "$NEW_PASSWORD"
 
-# Construct connection string
+Write-Host "✓ Updated Key Vault secret"
+
+# Step 3: Construct connection string
 $SQL_CONNECTION_STRING = "Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 
-# Update App Service
+# Step 4: Update App Service
 az webapp config connection-string set `
   --name ahkflow-api-dev `
   --resource-group rg-ahkflow-dev `
   --connection-string-type SQLAzure `
   --settings DefaultConnection="$SQL_CONNECTION_STRING"
 
-# Update GitHub secret
+Write-Host "✓ Updated App Service connection string"
+
+# Step 5: Update GitHub secret
 $SQL_CONNECTION_STRING | gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo s205109/AHKFlow
 
-Write-Host "✓ Updated password (24 characters)"
+Write-Host ""
+Write-Host "✓ Updated password (24 characters with complexity) across all systems"
 ```
 
 ---

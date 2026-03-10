@@ -556,11 +556,12 @@ else
     fi
   else
     # Step 7.3: Generate secure password (24 characters - SQL Server limit is 128, keep it short)
-    # Using base64 with trimming to ensure consistent length
-    SQL_ADMIN_PASSWORD=$(openssl rand -base64 18 2>/dev/null | tr -d "=+/" | cut -c1-24)
+    # SQL Server requires: uppercase, lowercase, numbers, AND special characters
+    # Generate 20 alphanumeric + 4 special characters, then shuffle
+    SQL_ADMIN_PASSWORD=$(openssl rand -base64 16 2>/dev/null | tr -d "=/" | head -c 20; echo -n '!@#$')
 
-    # Fallback for Windows without openssl
-    if [ -z "$SQL_ADMIN_PASSWORD" ]; then
+    # Fallback for Windows without openssl (ensures complexity)
+    if [ -z "$SQL_ADMIN_PASSWORD" ] || [ ${#SQL_ADMIN_PASSWORD} -lt 24 ]; then
       SQL_ADMIN_PASSWORD=$(powershell -Command "[System.Web.Security.Membership]::GeneratePassword(24, 8)" 2>/dev/null)
     fi
 
@@ -1142,22 +1143,41 @@ Both API Scope and App Service are needed for a complete working deployment!
 **Fix:** Regenerate a shorter password:
 
 ```bash
-# Generate new 24-character password
-NEW_PASSWORD=$(openssl rand -base64 18 | tr -d "=+/" | cut -c1-24)
+# Generate new 24-character password with complexity requirements
+# SQL Server requires: uppercase, lowercase, numbers, AND special characters
+NEW_PASSWORD=$(openssl rand -base64 16 | tr -d "=/" | head -c 20; echo -n '!@#$')
 echo "Password length: ${#NEW_PASSWORD}"
 
-# Update Key Vault
+# Step 1: Update SQL Server admin password
+az sql server update \
+  --name ahkflow-sql-dev \
+  --resource-group rg-ahkflow-dev \
+  --admin-password "$NEW_PASSWORD"
+
+echo "✓ Updated SQL Server admin password"
+
+# Step 2: Update Key Vault
 az keyvault secret set \
   --vault-name ahkflow-kv-dev \
   --name sql-admin-password \
   --value "$NEW_PASSWORD"
 
-# Update App Service connection string
+echo "✓ Updated Key Vault secret"
+
+# Step 3: Update App Service connection string
 az webapp config connection-string set \
   --name ahkflow-api-dev \
   --resource-group rg-ahkflow-dev \
   --connection-string-type SQLAzure \
   --settings DefaultConnection="Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 
-echo "✓ Updated password (24 characters)"
+echo "✓ Updated App Service connection string"
+
+# Step 4: Update GitHub secret (optional - if you've already set it)
+# Uncomment if you want to update the GitHub secret as well:
+# SQL_CONNECTION_STRING="Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+# echo "$SQL_CONNECTION_STRING" | gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo s205109/AHKFlow
+
+echo ""
+echo "✓ Updated password (24 characters with complexity) across all systems"
 ```
