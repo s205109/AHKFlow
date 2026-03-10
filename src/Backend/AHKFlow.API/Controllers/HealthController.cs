@@ -29,6 +29,7 @@ namespace AHKFlow.API.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(HealthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<HealthResponse>> GetHealthAsync(CancellationToken cancellationToken)
         {
@@ -49,6 +50,7 @@ namespace AHKFlow.API.Controllers
             };
 
             // Check database connectivity by performing a query
+            string? databaseError = null;
             try
             {
                 int testMessageCount = await _dbContext.TestMessages.CountAsync(cancellationToken);
@@ -64,6 +66,7 @@ namespace AHKFlow.API.Controllers
             {
                 _logger.LogError(ex, "Database health check failed");
                 checks["database"] = "Unhealthy";
+                databaseError = ex.Message;
             }
 
             string overallStatus = checks.Values.All(v => v == "Healthy" || int.TryParse(v, out _)) ? "Healthy" : "Degraded";
@@ -72,7 +75,7 @@ namespace AHKFlow.API.Controllers
             _logger.LogInformation("Health check completed with status: {Status}", overallStatus);
 #pragma warning restore CA1873 // Avoid potentially expensive logging
 
-            return Ok(new HealthResponse
+            var response = new HealthResponse
             {
                 Status = overallStatus,
                 Version = version,
@@ -80,7 +83,25 @@ namespace AHKFlow.API.Controllers
                 ApiUrl = apiUrl,
                 Timestamp = DateTime.UtcNow,
                 Checks = checks
-            });
+            };
+
+            // Return 503 Service Unavailable if database is unhealthy (critical dependency)
+            if (checks["database"] == "Unhealthy")
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    response.Status,
+                    response.Version,
+                    response.Environment,
+                    response.ApiUrl,
+                    response.Timestamp,
+                    response.Checks,
+                    Error = "Database is unavailable. API cannot function without database connectivity.",
+                    Details = databaseError
+                });
+            }
+
+            return Ok(response);
         }
     }
 }
