@@ -2,6 +2,7 @@ using AHKFlow.API;
 using AHKFlow.API.Middleware;
 using AHKFlow.Infrastructure.Data;
 using AHKFlow.Infrastructure.Services;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -21,10 +22,35 @@ try
 
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog from appsettings with two-stage initialization
-    builder.Services.AddSerilog((services, configuration) => configuration
-        .ReadFrom.Configuration(builder.Configuration)
-        .ReadFrom.Services(services));
+    // Configure Serilog with Application Insights
+    builder.Services.AddSerilog((services, configuration) =>
+    {
+        var loggerConfig = configuration
+            .ReadFrom.Configuration(builder.Configuration)
+            .ReadFrom.Services(services);
+
+        // Add Application Insights sink if connection string is configured
+        string? appInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+        if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
+        {
+            var telemetryConfig = new TelemetryConfiguration
+            {
+                ConnectionString = appInsightsConnectionString
+            };
+
+            // Set cloud role name for backend
+            telemetryConfig.TelemetryInitializers.Add(new CloudRoleNameInitializer("AHKFlow-API"));
+
+            loggerConfig.WriteTo.ApplicationInsights(
+                telemetryConfig,
+                TelemetryConverter.Traces);
+
+            Log.Information("Application Insights configured for backend API");
+        }
+    });
+
+    // TEST: Log test error for Application Insights verification (remove after testing)
+    Log.Error("TEST ERROR [Backend Program.cs]: Application Insights integration test - Backend API");
 
     // Start SQL Server in Docker if requested (for "https + Docker SQL" launch profile)
     if (builder.Environment.IsDevelopment() &&

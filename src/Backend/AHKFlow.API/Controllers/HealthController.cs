@@ -32,6 +32,16 @@ namespace AHKFlow.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<HealthResponse>> GetHealthAsync(CancellationToken cancellationToken)
         {
+            // TEST: Log test error for Application Insights verification (remove after testing)
+            try
+            {
+                throw new InvalidOperationException("TEST EXCEPTION from HealthController: Application Insights integration test");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "TEST: Simulated exception for Application Insights testing");
+            }
+
             string version = await _versionService.GetVersionAsync(cancellationToken);
             string environment = _hostEnvironment.EnvironmentName;
 
