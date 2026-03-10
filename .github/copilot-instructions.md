@@ -60,6 +60,22 @@ Check `.github/agents/` and state your role at the start of your response!
 3. Verify no compiler warnings
 4. Check GitHub Actions will pass (workflows in .github/workflows/)
 
+## ❌ Git Restrictions
+
+**Copilot must NEVER perform any git operations:**
+
+- ❌ `git commit` - Do NOT create commits
+- ❌ `git push` - Do NOT push to any branch or remote
+- ❌ `git merge` - Do NOT merge branches
+- ❌ `git rebase` - Do NOT rebase
+- ❌ `git tag` - Do NOT create tags
+- ❌ `git checkout` - Do NOT switch branches
+- ❌ `git pull` - Do NOT pull from remotes
+
+**Why:** All commits must be authored by the developer to maintain accurate git history, authorship, and accountability. Copilot's role is to make code changes only — the developer reviews and commits.
+
+**If asked to commit or push:** Respond with the git command the developer should run themselves, but do not execute it.
+
 ## Solution Structure
 
 ``` plaintext

@@ -101,5 +101,6 @@ For each feature:
 - ✅ Support both unit tests and integration tests
 - ✅ Use Allman brace style
 - ✅ Use `async`/`await` with `CancellationToken` support
+- ❌ **Do NOT run `git commit`, `git push`, `git merge`, `git rebase`, `git tag`, `git checkout`, or `git pull`** — the developer reviews and commits all changes
 
 ```
