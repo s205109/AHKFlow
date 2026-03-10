@@ -839,6 +839,72 @@ Retrieve from Azure Portal or Key Vault, or construct manually:
 Server=tcp:<server-name>.database.windows.net,1433;Initial Catalog=<db-name>;User ID=<admin-user>;Password=<password>;Encrypt=True;
 ```
 
+**⚠️ Password Length Limit:** SQL Server passwords must not exceed **128 characters**. If you see this error:
+
+```
+The value's length for key 'Password' exceeds its limit of '128'
+```
+
+**Fix:** Generate a shorter password (24 characters recommended):
+
+#### Bash
+
+```bash
+# Generate new 24-character password
+NEW_PASSWORD=$(openssl rand -base64 18 | tr -d "=+/" | cut -c1-24)
+echo "Password length: ${#NEW_PASSWORD}"
+
+# Update Key Vault
+az keyvault secret set \
+  --vault-name ahkflow-kv-dev \
+  --name sql-admin-password \
+  --value "$NEW_PASSWORD"
+
+# Construct connection string
+SQL_CONNECTION_STRING="Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+# Update App Service
+az webapp config connection-string set \
+  --name ahkflow-api-dev \
+  --resource-group rg-ahkflow-dev \
+  --connection-string-type SQLAzure \
+  --settings DefaultConnection="$SQL_CONNECTION_STRING"
+
+# Update GitHub secret
+echo "$SQL_CONNECTION_STRING" | gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo s205109/AHKFlow
+
+echo "✓ Updated password (24 characters)"
+```
+
+#### PowerShell
+
+```powershell
+# Generate new 24-character password
+$NEW_PASSWORD = -join ((65..90) + (97..122) + (48..57) + @(33,35,36,37,38,42,43,45,61,63,64) | Get-Random -Count 24 | ForEach-Object {[char]$_})
+Write-Host "Password length: $($NEW_PASSWORD.Length)"
+
+# Update Key Vault
+az keyvault secret set `
+  --vault-name ahkflow-kv-dev `
+  --name sql-admin-password `
+  --value "$NEW_PASSWORD"
+
+# Construct connection string
+$SQL_CONNECTION_STRING = "Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+# Update App Service
+az webapp config connection-string set `
+  --name ahkflow-api-dev `
+  --resource-group rg-ahkflow-dev `
+  --connection-string-type SQLAzure `
+  --settings DefaultConnection="$SQL_CONNECTION_STRING"
+
+# Update GitHub secret
+$SQL_CONNECTION_STRING | gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo s205109/AHKFlow
+
+Write-Host "✓ Updated password (24 characters)"
+```
+
 ---
 
 ## Manual Azure Configuration (One-Time Setup)

@@ -555,8 +555,16 @@ else
       echo "✓ Retrieved SQL password from Key Vault"
     fi
   else
-    # Step 7.3: Generate secure password
-    SQL_ADMIN_PASSWORD=$(openssl rand -base64 32 2>/dev/null || powershell -Command "Add-Type -AssemblyName System.Web; [System.Web.Security.Membership]::GeneratePassword(32,10)")
+    # Step 7.3: Generate secure password (24 characters - SQL Server limit is 128, keep it short)
+    # Using base64 with trimming to ensure consistent length
+    SQL_ADMIN_PASSWORD=$(openssl rand -base64 18 2>/dev/null | tr -d "=+/" | cut -c1-24)
+
+    # Fallback for Windows without openssl
+    if [ -z "$SQL_ADMIN_PASSWORD" ]; then
+      SQL_ADMIN_PASSWORD=$(powershell -Command "[System.Web.Security.Membership]::GeneratePassword(24, 8)" 2>/dev/null)
+    fi
+
+    echo "Generated password length: ${#SQL_ADMIN_PASSWORD} characters (SQL Server limit: 128)"
 
     # Step 7.4: Create SQL Server
     echo "Creating SQL Server..."
@@ -1124,3 +1132,32 @@ After creating Azure resources, configure these GitHub secrets for automated dep
 - **Application Insights** (Section 6) = Optional unified monitoring for frontend + backend (see `.github/docs/ARCHITECTURE_APPLICATION_INSIGHTS.md`)
 
 Both API Scope and App Service are needed for a complete working deployment!
+
+### SQL Password Length Limit
+
+**Important:** SQL Server passwords have a **128 character limit**. This script generates **24-character passwords** to stay well within this limit.
+
+**If you see error:** `The value's length for key 'Password' exceeds its limit of '128'`
+
+**Fix:** Regenerate a shorter password:
+
+```bash
+# Generate new 24-character password
+NEW_PASSWORD=$(openssl rand -base64 18 | tr -d "=+/" | cut -c1-24)
+echo "Password length: ${#NEW_PASSWORD}"
+
+# Update Key Vault
+az keyvault secret set \
+  --vault-name ahkflow-kv-dev \
+  --name sql-admin-password \
+  --value "$NEW_PASSWORD"
+
+# Update App Service connection string
+az webapp config connection-string set \
+  --name ahkflow-api-dev \
+  --resource-group rg-ahkflow-dev \
+  --connection-string-type SQLAzure \
+  --settings DefaultConnection="Server=tcp:ahkflow-sql-dev.database.windows.net,1433;Initial Catalog=ahkflow-db;User ID=ahkflowadmin;Password=$NEW_PASSWORD;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+
+echo "✓ Updated password (24 characters)"
+```
