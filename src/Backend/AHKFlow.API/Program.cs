@@ -49,9 +49,6 @@ try
         }
     });
 
-    // TEST: Log test error for Application Insights verification (remove after testing)
-    Log.Error("TEST ERROR [Backend Program.cs]: Application Insights integration test - Backend API");
-
     // Start SQL Server in Docker if requested (for "https + Docker SQL" launch profile)
     if (builder.Environment.IsDevelopment() &&
         string.Equals(Environment.GetEnvironmentVariable("AHKFLOW_START_DOCKER_SQL"), "true", StringComparison.OrdinalIgnoreCase))

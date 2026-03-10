@@ -32,16 +32,6 @@ namespace AHKFlow.API.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<HealthResponse>> GetHealthAsync(CancellationToken cancellationToken)
         {
-            // TEST: Log test error for Application Insights verification (remove after testing)
-            try
-            {
-                throw new InvalidOperationException("TEST EXCEPTION from HealthController: Application Insights integration test");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "TEST: Simulated exception for Application Insights testing");
-            }
-
             string version = await _versionService.GetVersionAsync(cancellationToken);
             string environment = _hostEnvironment.EnvironmentName;
 
@@ -58,24 +48,17 @@ namespace AHKFlow.API.Controllers
                 ["api"] = "Healthy"
             };
 
-            // Check database connectivity
+            // Check database connectivity by performing a query
             try
             {
-                _logger.LogError(new Exception("Database health check started"), "Database health check started");
+                int testMessageCount = await _dbContext.TestMessages.CountAsync(cancellationToken);
+                checks["database"] = "Healthy";
+                checks["database_records"] = testMessageCount.ToString();
 
-                bool canConnect = await _dbContext.Database.CanConnectAsync(cancellationToken);
-                checks["database"] = canConnect ? "Healthy" : "Unhealthy";
-
-                if (canConnect)
-                {
-                    int testMessageCount = await _dbContext.TestMessages.CountAsync(cancellationToken);
-                    checks["database_records"] = testMessageCount.ToString();
-
-                    var appliedMigrations = await _dbContext.Database.GetAppliedMigrationsAsync(cancellationToken);
-                    var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
-                    checks["migrations_applied"] = appliedMigrations.Count().ToString();
-                    checks["migrations_pending"] = pendingMigrations.Count().ToString();
-                }
+                var appliedMigrations = await _dbContext.Database.GetAppliedMigrationsAsync(cancellationToken);
+                var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken);
+                checks["migrations_applied"] = appliedMigrations.Count().ToString();
+                checks["migrations_pending"] = pendingMigrations.Count().ToString();
             }
             catch (Exception ex)
             {
