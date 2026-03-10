@@ -27,9 +27,6 @@ public sealed class ApiBaseUrlResolver
     {
         Log.Information("Starting API endpoint auto-detection...");
 
-        // TEST: Log test error for Application Insights verification (remove after testing)
-        Log.Error("TEST ERROR [ApiBaseUrlResolver]: Application Insights integration test - this error should appear in Azure Portal");
-
         List<string> candidates = BuildCandidates(configuredBaseAddress, configuredCandidates);
         List<string> orderedCandidates = OrderByPreferredScheme(candidates, hostBaseAddress);
 

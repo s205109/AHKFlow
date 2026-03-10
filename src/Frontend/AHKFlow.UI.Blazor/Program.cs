@@ -1,6 +1,5 @@
 using AHKFlow.UI.Blazor;
 using AHKFlow.UI.Blazor.Services;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -8,32 +7,14 @@ using Serilog;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-// Configure Serilog with Application Insights
-var loggerConfig = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration);
-
-// Add Application Insights sink if connection string is configured
-string? appInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
-if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
-{
-    var telemetryConfig = new TelemetryConfiguration
-    {
-        ConnectionString = appInsightsConnectionString
-    };
-
-    loggerConfig.WriteTo.ApplicationInsights(
-        telemetryConfig,
-        TelemetryConverter.Traces);
-}
-
-Log.Logger = loggerConfig.CreateLogger();
+// Configure Serilog from appsettings (browser console only)
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
 
 try
 {
     Log.Information("AHKFlow Blazor UI starting up");
-
-    // TEST: Log test error for Application Insights verification (remove after testing)
-    Log.Error("TEST ERROR [Program.cs]: Application Insights integration test - this error should appear in Azure Portal");
 
     builder.RootComponents.Add<App>("#app");
     builder.RootComponents.Add<HeadOutlet>("head::after");

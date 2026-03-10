@@ -1,30 +1,33 @@
 # Application Insights Architecture
 
-## Pattern: Single Resource for Frontend + Backend
+## Pattern: Backend-Only Telemetry
 
-**Best Practice:** Use **one Application Insights resource** for the entire AHKFlow application (both Blazor WASM frontend and ASP.NET Core backend).
+**Best Practice:** Use Application Insights **only for backend API**, not for Blazor WASM frontend.
 
 ```
 ┌─────────────────────────────────────────────┐
 │   Application Insights: ahkflow-insights-dev │
 └─────────────────────────────────────────────┘
-           ▲                    ▲
-           │                    │
-   ┌───────┴────────┐   ┌──────┴──────────┐
-   │ Blazor WASM    │   │ ASP.NET Core API│
-   │ (Serilog sink) │───│ (Serilog sink)  │
-   └────────────────┘   └─────────────────┘
+                         ▲
+                         │
+                 ┌───────┴──────────┐
+                 │ ASP.NET Core API │
+                 │ (Serilog sink)   │
+                 └──────────────────┘
 ```
 
-## Why Single Resource?
+## Why Backend-Only?
 
-| Benefit | Description |
-|---------|-------------|
-| **End-to-end tracing** | Correlate frontend errors → API calls → database queries in one view |
-| **Application Map** | Unified topology: `Browser → AHKFlow-Frontend → AHKFlow-API → SQL` |
-| **Cost efficiency** | Single resource, unified billing |
-| **Simplified config** | One connection string shared across services |
-| **Better debugging** | See frontend errors and backend failures together |
+| Aspect | Frontend (Blazor WASM) | Backend (API) |
+|--------|------------------------|---------------|
+| **Log Visibility** | ✅ Browser DevTools (always visible) | ❌ Server logs (hidden from users) |
+| **Debugging** | ✅ Browser Network tab + Sources | ❌ Requires remote logging |
+| **Startup Impact** | ❌ Blocks WASM initialization | ✅ Async background telemetry |
+| **Bundle Size** | ❌ Adds ~500KB to WASM bundle | ✅ Minimal server impact |
+| **User Privacy** | ⚠️ Tracks client behavior | ✅ Server telemetry only |
+| **Value** | ❌ Browser console already sufficient | ✅ Critical for production monitoring |
+
+**Recommendation:** Keep frontend logging to browser console only.
 
 ## Implementation
 
@@ -32,13 +35,7 @@
 
 See `docs/AZURE_CLI_SETUP.md` Section 6 (Application Insights)
 
-### 2. Differentiate Services with Cloud Role Name
-
-**Frontend (`Program.cs`):**
-
-```csharp
-telemetryConfig.TelemetryInitializers.Add(new CloudRoleNameInitializer("AHKFlow-Frontend"));
-```
+### 2. Configure Backend Only
 
 **Backend (`Program.cs`):**
 
@@ -46,12 +43,14 @@ telemetryConfig.TelemetryInitializers.Add(new CloudRoleNameInitializer("AHKFlow-
 telemetryConfig.TelemetryInitializers.Add(new CloudRoleNameInitializer("AHKFlow-API"));
 ```
 
-### 3. Query Both Services
+**Frontend:** Use browser console only (Serilog.Sinks.BrowserConsole)
+
+### 3. Query Backend Telemetry
 
 ```kql
 traces
-| where cloud_RoleName in ("AHKFlow-Frontend", "AHKFlow-API")
-| summarize count() by cloud_RoleName, severityLevel
+| where cloud_RoleName == "AHKFlow-API"
+| summarize count() by severityLevel
 | order by severityLevel desc
 ```
 
@@ -59,7 +58,7 @@ traces
 
 **Connection String:** Safe to commit (write-only ingestion endpoint, no secrets)
 
-**Frontend:** `wwwroot/appsettings.json`
+**Backend Only:** `appsettings.Production.json`
 
 ```json
 {
@@ -69,19 +68,11 @@ traces
 }
 ```
 
-**Backend:** `appsettings.Production.json`
-
-```json
-{
-  "ApplicationInsights": {
-    "ConnectionString": "InstrumentationKey=xxx;IngestionEndpoint=https://westeurope-5.in.applicationinsights.azure.com/;..."
-  }
-}
-```
+**Frontend:** No Application Insights configuration needed. Use browser DevTools console.
 
 ## Deployment
 
-**✅ Recommended:** Set Application Insights connection string via deployment workflow.
+**✅ Backend-only deployment** via GitHub Actions.
 
 ### Backend (API) Deployment
 
@@ -97,25 +88,9 @@ Update `.github/workflows/ahkflow-deploy-api.yml`:
         ApplicationInsights__ConnectionString="${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}"
 ```
 
-### Frontend (Static Web Apps) Deployment
+### Frontend Deployment
 
-**For Blazor WASM:** Connection string must be in `appsettings.json` (client-side, public).
-
-**Steps:**
-1. Run CLI script (Section 6) to get connection string
-2. Update `src/Frontend/AHKFlow.UI.Blazor/wwwroot/appsettings.json` directly
-3. Commit to repository (safe - write-only telemetry endpoint)
-
-**Alternative:** Use build-time substitution in workflow:
-
-```yaml
-- name: Update App Insights Connection String
-  run: |
-    $json = Get-Content src/Frontend/AHKFlow.UI.Blazor/wwwroot/appsettings.json | ConvertFrom-Json
-    $json.ApplicationInsights.ConnectionString = "${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}"
-    $json | ConvertTo-Json -Depth 10 | Set-Content src/Frontend/AHKFlow.UI.Blazor/wwwroot/appsettings.json
-  shell: pwsh
-```
+**No Application Insights configuration needed.** Frontend uses browser console only.
 
 ### Required GitHub Secret
 
@@ -129,7 +104,7 @@ APP_INSIGHTS_CONNECTION_STRING = InstrumentationKey=xxx;IngestionEndpoint=https:
 
 - **Standalone resource** (not linked to App Service lifecycle)
 - Created via Azure CLI (see `docs/AZURE_CLI_SETUP.md` Section 6)
-- Linked to both frontend and backend via connection string
+- Linked to backend API only
 - Uses workspace-based Application Insights (modern approach)
 
 ## Cost
