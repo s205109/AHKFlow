@@ -51,6 +51,8 @@ namespace AHKFlow.API.Controllers
             // Check database connectivity
             try
             {
+                _logger.LogError(new Exception("Database health check started"), "Database health check started");
+
                 bool canConnect = await _dbContext.Database.CanConnectAsync(cancellationToken);
                 checks["database"] = canConnect ? "Healthy" : "Unhealthy";
 
@@ -67,7 +69,7 @@ namespace AHKFlow.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Database health check failed");
+                _logger.LogError(ex, "Database health check failed");
                 checks["database"] = "Unhealthy";
             }
 
