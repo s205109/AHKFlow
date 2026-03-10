@@ -24,8 +24,9 @@ The CI/CD workflows require these secrets to be configured in GitHub:
 | `AHKFLOW_AZURE_CREDENTIALS` | Service Principal JSON for Azure login | See [Section 2](#2-service-principal-ahkflow_azure_credentials) |
 | `AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN` | Static Web Apps deployment token | See [Section 3](#3-static-web-apps-token-ahkflow_azure_static_web_apps_api_token) |
 | `AHKFLOW_SQL_MIGRATION_CONNECTION_STRING` | SQL connection string for migrations | See [Section 4](#4-sql-connection-string-ahkflow_sql_migration_connection_string) |
-| `AZURE_AD_CLIENT_ID` | Azure AD App Registration Client ID | See [Section 5](#5-azure-ad-configuration-azure_ad_client_id--azure_ad_tenant_id) |
-| `AZURE_AD_TENANT_ID` | Azure AD Tenant ID | See [Section 5](#5-azure-ad-configuration-azure_ad_client_id--azure_ad_tenant_id) |
+| `APP_INSIGHTS_CONNECTION_STRING` | Application Insights connection string for backend telemetry | See [Section 5](#5-application-insights-connection-string-app_insights_connection_string) |
+| `AZURE_AD_CLIENT_ID` | Azure AD App Registration Client ID | See [Section 6](#6-azure-ad-configuration-azure_ad_client_id--azure_ad_tenant_id) |
+| `AZURE_AD_TENANT_ID` | Azure AD Tenant ID | See [Section 6](#6-azure-ad-configuration-azure_ad_client_id--azure_ad_tenant_id) |
 
 ### Optional Secrets
 
@@ -344,9 +345,101 @@ else
 fi
 ```
 
-#### Option B: PowerShell
+### 5. Application Insights Connection String (`APP_INSIGHTS_CONNECTION_STRING`)
+
+**Purpose:** Backend API telemetry and monitoring via Serilog → Application Insights.
+
+#### Option A: Bash
+
+```bash
+# Step 5.1: Display and validate required variables
+echo "=== Step 5: Application Insights Connection String ==="
+echo "Required variables:"
+echo "  RESOURCE_GROUP: ${RESOURCE_GROUP:-NOT SET}"
+echo "  ENVIRONMENT: ${ENVIRONMENT:-NOT SET}"
+echo "  GITHUB_REPO: ${GITHUB_REPO:-NOT SET}"
+echo ""
+
+if [ -z "$RESOURCE_GROUP" ] || [ -z "$ENVIRONMENT" ] || [ -z "$GITHUB_REPO" ]; then
+  echo "❌ Error: Required variables not set"
+  echo "Please run the 'Variables' section first"
+  exit 1
+fi
+
+# Step 5.2: Retrieve Application Insights connection string
+APP_INSIGHTS_NAME="ahkflow-insights-${ENVIRONMENT}"
+
+APP_INSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show \
+  --app $APP_INSIGHTS_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --query connectionString -o tsv 2>/dev/null)
+
+if [ -z "$APP_INSIGHTS_CONNECTION_STRING" ]; then
+  echo "⚠ Application Insights not found: $APP_INSIGHTS_NAME"
+  echo ""
+  echo "Create Application Insights first using docs/AZURE_CLI_SETUP.md Section 6"
+  echo "Or skip this secret if you're not using Application Insights"
+  echo ""
+  exit 1
+fi
+
+echo "✓ Retrieved Application Insights connection string"
+
+# Step 5.3: Set GitHub secret
+echo "$APP_INSIGHTS_CONNECTION_STRING" | gh secret set APP_INSIGHTS_CONNECTION_STRING --repo $GITHUB_REPO
+echo "✓ Set APP_INSIGHTS_CONNECTION_STRING"
+```
+
+#### Option B: PowerShell (Recommended for Windows)
 
 ```powershell
+# Step 5.1: Display and validate required variables
+Write-Host "=== Step 5: Application Insights Connection String ==="
+Write-Host "Required variables:"
+Write-Host "  RESOURCE_GROUP: $RESOURCE_GROUP"
+Write-Host "  ENVIRONMENT: $ENVIRONMENT"
+Write-Host "  GITHUB_REPO: $GITHUB_REPO"
+Write-Host ""
+
+if ([string]::IsNullOrEmpty($RESOURCE_GROUP) -or 
+    [string]::IsNullOrEmpty($ENVIRONMENT) -or 
+    [string]::IsNullOrEmpty($GITHUB_REPO)) {
+    Write-Host "❌ Error: Required variables not set" -ForegroundColor Red
+    Write-Host "Please run the 'Variables' section first"
+    exit 1
+}
+
+# Step 5.2: Retrieve Application Insights connection string
+$APP_INSIGHTS_NAME = "ahkflow-insights-$ENVIRONMENT"
+
+$APP_INSIGHTS_CONNECTION_STRING = az monitor app-insights component show `
+    --app $APP_INSIGHTS_NAME `
+    --resource-group $RESOURCE_GROUP `
+    --query connectionString -o tsv 2>$null
+
+if ([string]::IsNullOrEmpty($APP_INSIGHTS_CONNECTION_STRING)) {
+    Write-Host "⚠ Application Insights not found: $APP_INSIGHTS_NAME" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Create Application Insights first using docs/AZURE_CLI_SETUP.md Section 6"
+    Write-Host "Or skip this secret if you're not using Application Insights"
+    Write-Host ""
+    exit 1
+}
+
+Write-Host "✓ Retrieved Application Insights connection string"
+
+# Step 5.3: Set GitHub secret
+$APP_INSIGHTS_CONNECTION_STRING | gh secret set APP_INSIGHTS_CONNECTION_STRING --repo $GITHUB_REPO
+Write-Host "✓ Set APP_INSIGHTS_CONNECTION_STRING"
+```
+
+### 6. Azure AD Configuration (`AZURE_AD_CLIENT_ID` & `AZURE_AD_TENANT_ID`)
+
+#### Option A: Bash
+
+```bash
+# Step 6.1: Display and validate required variables
+echo "=== Step 6: Azure AD Configuration ==="
 # Step 4.1: Display and validate required variables
 Write-Host "=== Step 4: SQL Connection String ==="
 Write-Host "Required variables:"
@@ -537,6 +630,7 @@ gh secret list --repo $GITHUB_REPO
 # AHKFLOW_AZURE_CREDENTIALS
 # AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN
 # AHKFLOW_SQL_MIGRATION_CONNECTION_STRING
+# APP_INSIGHTS_CONNECTION_STRING
 # AZURE_AD_CLIENT_ID
 # AZURE_AD_TENANT_ID
 ```
@@ -582,6 +676,19 @@ gh secret set AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN --repo $GITHUB_REPO
 
 # Paste when prompted
 gh secret set AHKFLOW_SQL_MIGRATION_CONNECTION_STRING --repo $GITHUB_REPO
+```
+
+### Application Insights Connection String
+
+```bash
+# Get connection string
+az monitor app-insights component show \
+  --app ahkflow-insights-dev \
+  --resource-group rg-ahkflow-dev \
+  --query connectionString -o tsv
+
+# Copy output and set secret
+gh secret set APP_INSIGHTS_CONNECTION_STRING --repo $GITHUB_REPO
 ```
 
 ### Azure AD Configuration
@@ -907,6 +1014,29 @@ else
   echo "⚠ Skipped AHKFLOW_SQL_MIGRATION_CONNECTION_STRING (not available)"
 fi
 
+# 4. Application Insights Connection String
+APP_INSIGHTS_NAME="ahkflow-insights-${ENVIRONMENT}"
+APP_INSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show \
+  --app $APP_INSIGHTS_NAME \
+  --resource-group $RESOURCE_GROUP \
+  --query connectionString -o tsv 2>/dev/null)
+
+if [ -n "$APP_INSIGHTS_CONNECTION_STRING" ]; then
+  echo "$APP_INSIGHTS_CONNECTION_STRING" | gh secret set APP_INSIGHTS_CONNECTION_STRING --repo $GITHUB_REPO
+  echo "✓ APP_INSIGHTS_CONNECTION_STRING"
+else
+  echo "⚠ Skipped APP_INSIGHTS_CONNECTION_STRING (Application Insights not found)"
+fi
+
+# 5. Azure AD Configuration
+CLIENT_ID=$(az ad app list --display-name "AHKFlow-Dev" --query "[0].appId" -o tsv)
+echo "$CLIENT_ID" | gh secret set AZURE_AD_CLIENT_ID --repo $GITHUB_REPO
+echo "✓ AZURE_AD_CLIENT_ID"
+
+TENANT_ID=$(az account show --query "tenantId" -o tsv)
+echo "$TENANT_ID" | gh secret set AZURE_AD_TENANT_ID --repo $GITHUB_REPO
+echo "✓ AZURE_AD_TENANT_ID"
+
 # Verify
 echo ""
 echo "Secrets set. Verify:"
@@ -1006,6 +1136,29 @@ if (-not [string]::IsNullOrEmpty($SQL_CONNECTION_STRING)) {
 } else {
     Write-Host "⚠ Skipped AHKFLOW_SQL_MIGRATION_CONNECTION_STRING (not available)" -ForegroundColor Yellow
 }
+
+# 4. Application Insights Connection String
+$APP_INSIGHTS_NAME = "ahkflow-insights-$ENVIRONMENT"
+$APP_INSIGHTS_CONNECTION_STRING = az monitor app-insights component show `
+    --app $APP_INSIGHTS_NAME `
+    --resource-group $RESOURCE_GROUP `
+    --query connectionString -o tsv 2>$null
+
+if (-not [string]::IsNullOrEmpty($APP_INSIGHTS_CONNECTION_STRING)) {
+    $APP_INSIGHTS_CONNECTION_STRING | gh secret set APP_INSIGHTS_CONNECTION_STRING --repo $GITHUB_REPO
+    Write-Host "✓ APP_INSIGHTS_CONNECTION_STRING"
+} else {
+    Write-Host "⚠ Skipped APP_INSIGHTS_CONNECTION_STRING (Application Insights not found)" -ForegroundColor Yellow
+}
+
+# 5. Azure AD Configuration
+$CLIENT_ID = az ad app list --display-name "AHKFlow-Dev" --query "[0].appId" -o tsv
+$CLIENT_ID | gh secret set AZURE_AD_CLIENT_ID --repo $GITHUB_REPO
+Write-Host "✓ AZURE_AD_CLIENT_ID"
+
+$TENANT_ID = az account show --query "tenantId" -o tsv
+$TENANT_ID | gh secret set AZURE_AD_TENANT_ID --repo $GITHUB_REPO
+Write-Host "✓ AZURE_AD_TENANT_ID"
 
 # Verify
 Write-Host ""
