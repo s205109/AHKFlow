@@ -7,6 +7,8 @@ Create Azure resources for AHKFlow: Static Web App, App Service, SQL Database, a
 - Azure CLI installed and logged in (`az login`)
 - An active Azure subscription
 
+**💡 Important:** After creating resources, configure GitHub secrets for CI/CD workflows using `docs/GITHUB_SECRETS_SETUP.md`.
+
 ---
 
 ## Variables
@@ -98,6 +100,13 @@ else
   # Step 2.3: Get hostname
   SWA_HOSTNAME=$(az staticwebapp show --name $SWA_NAME --resource-group $RESOURCE_GROUP --query "defaultHostname" -o tsv)
   echo "SWA URL: https://$SWA_HOSTNAME"
+
+  echo ""
+  echo "📋 GitHub Secret Required:"
+  echo "Static Web Apps deployment token must be added as a GitHub secret."
+  echo "See docs/GITHUB_SECRETS_SETUP.md Section 3 for instructions."
+  echo ""
+  echo "  gh secret set AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN --repo s205109/AHKFlow"
 fi
 ```
 
@@ -148,6 +157,14 @@ else
   TENANT_ID=$(az account show --query "tenantId" -o tsv)
   echo "CLIENT_ID: $CLIENT_ID"
   echo "TENANT_ID: $TENANT_ID"
+
+  echo ""
+  echo "📋 GitHub Secrets Required:"
+  echo "These values must be added as GitHub secrets for CI/CD workflows."
+  echo "See docs/GITHUB_SECRETS_SETUP.md Section 6 for instructions."
+  echo ""
+  echo "  gh secret set AZURE_AD_CLIENT_ID --repo s205109/AHKFlow"
+  echo "  gh secret set AZURE_AD_TENANT_ID --repo s205109/AHKFlow"
 fi
 ```
 
@@ -490,14 +507,15 @@ else
   echo "✅ Application Insights Connection String:"
   echo "$APP_INSIGHTS_CONNECTION_STRING"
   echo ""
-  echo "📋 Next Steps:"
-  echo "1. Update frontend: src/Frontend/AHKFlow.UI.Blazor/wwwroot/appsettings.json"
-  echo "2. Update backend: src/Backend/AHKFlow.API/appsettings.Production.json"
+  echo "📋 GitHub Secret Required:"
+  echo "This value must be added as a GitHub secret for backend deployment."
+  echo "See docs/GITHUB_SECRETS_SETUP.md Section 5 for instructions."
   echo ""
-  echo "Add this configuration:"
-  echo '  "ApplicationInsights": {'
-  echo '    "ConnectionString": "<paste-connection-string-above>"'
-  echo '  }'
+  echo "  gh secret set APP_INSIGHTS_CONNECTION_STRING --repo s205109/AHKFlow"
+  echo ""
+  echo "📋 Next Steps:"
+  echo "1. Update backend: src/Backend/AHKFlow.API/appsettings.Development.json (local dev only)"
+  echo "2. Production: Connection string is set automatically via GitHub Actions workflow"
   echo ""
   echo "See .github/docs/ARCHITECTURE_APPLICATION_INSIGHTS.md for implementation details"
 fi
@@ -571,6 +589,10 @@ else
       echo ""
       echo "⚠️  Password displayed above. You can retrieve it later with:"
       echo "  az keyvault secret show --vault-name $KEY_VAULT_NAME --name sql-admin-password --query value -o tsv"
+      echo ""
+      echo "📋 GitHub Secret Required:"
+      echo "SQL connection string must be added as a GitHub secret for database migrations."
+      echo "See docs/GITHUB_SECRETS_SETUP.md Section 4 for instructions."
       echo ""
     else
       echo "❌ Failed to create SQL Server"
@@ -843,6 +865,10 @@ else
         --settings DefaultConnection="$SQL_CONNECTION_STRING"
 
       echo "✓ Configured connection string (password from Key Vault)"
+      echo ""
+      echo "📋 GitHub Secret Required:"
+      echo "For CI/CD deployments, set the connection string as a GitHub secret."
+      echo "See docs/GITHUB_SECRETS_SETUP.md Section 4 for instructions."
     fi
 
     APP_SERVICE_URL=$(az webapp show --name $APP_SERVICE_NAME --resource-group $RESOURCE_GROUP --query "defaultHostName" -o tsv)
@@ -895,6 +921,18 @@ echo "SQL Server: $SQL_SERVER_FQDN"
 if [ -n "$APP_INSIGHTS_CONNECTION_STRING" ]; then
   echo "App Insights Connection String: $APP_INSIGHTS_CONNECTION_STRING"
 fi
+
+echo ""
+echo "🔐 Configure GitHub Secrets for CI/CD:"
+echo "Run: docs/GITHUB_SECRETS_SETUP.md to set all required GitHub secrets"
+echo ""
+echo "Required secrets:"
+echo "  - AZURE_AD_CLIENT_ID"
+echo "  - AZURE_AD_TENANT_ID"
+echo "  - APP_INSIGHTS_CONNECTION_STRING"
+echo "  - AHKFLOW_SQL_MIGRATION_CONNECTION_STRING"
+echo "  - AHKFLOW_AZURE_CREDENTIALS"
+echo "  - AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN"
 ```
 
 ---
@@ -1063,6 +1101,21 @@ This setup creates all Azure resources needed for AHKFlow:
 - 5 GB data ingestion/month
 - 90 days retention
 - Additional ingestion: ~€2/GB
+
+### 🔐 Required GitHub Secrets for CI/CD
+
+After creating Azure resources, configure these GitHub secrets for automated deployments:
+
+| Secret Name | Source Section | Description |
+|-------------|----------------|-------------|
+| `AZURE_AD_CLIENT_ID` | Section 3 | Azure AD App Registration Client ID |
+| `AZURE_AD_TENANT_ID` | Section 3 | Azure AD Tenant ID |
+| `APP_INSIGHTS_CONNECTION_STRING` | Section 6 | Application Insights connection string (backend telemetry) |
+| `AHKFLOW_SQL_MIGRATION_CONNECTION_STRING` | Section 7 | SQL connection string (for EF Core migrations) |
+| `AHKFLOW_AZURE_CREDENTIALS` | Manual | Service Principal JSON (see `GITHUB_SECRETS_SETUP.md` Section 2) |
+| `AHKFLOW_AZURE_STATIC_WEB_APPS_API_TOKEN` | Section 2 | Static Web Apps deployment token (see `GITHUB_SECRETS_SETUP.md` Section 3) |
+
+**📖 Complete Instructions:** See `docs/GITHUB_SECRETS_SETUP.md` for step-by-step GitHub secrets configuration.
 
 ### Key Concepts
 

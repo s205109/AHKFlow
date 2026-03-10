@@ -144,6 +144,7 @@ jobs:
               AzureAd__ClientId="${{ secrets.AZURE_AD_CLIENT_ID }}" \
               AzureAd__TenantId="${{ secrets.AZURE_AD_TENANT_ID }}" \
               AzureAd__Instance="https://login.microsoftonline.com/" \
+              ApplicationInsights__ConnectionString="${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}" \
               Cors__AllowedOrigins__0="https://white-island-04c4b8103.1.azurestaticapps.net"
           
           # Configure connection string with Key Vault reference
